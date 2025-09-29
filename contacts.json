@@ -1,0 +1,27 @@
+{
+    "Baba": {
+        "telephone": "3456789",
+        "email": "ksjdvvsj",
+        "adresse": "vsdv"
+    },
+    "Leonie": {
+        "telephone": "12345678",
+        "email": "",
+        "adresse": ""
+    },
+    "tasso": {
+        "telephone": "23456789",
+        "email": "tasso@gmail.com",
+        "adresse": "borne-10"
+    },
+    "Alvine": {
+        "telephone": "23456789",
+        "email": "",
+        "adresse": ""
+    },
+    "Jules": {
+        "telephone": "34567890",
+        "email": "jules@gmail.com",
+        "adresse": "pk-8"
+    }
+}
