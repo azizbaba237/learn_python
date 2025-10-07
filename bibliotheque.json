@@ -1,0 +1,26 @@
+{
+    "1984": {
+        "auteur": "George Orwell",
+        "nombre_pages": 250,
+        "année_publication": 1994,
+        "disponible": true
+    },
+    "Le Petit Prince": {
+        "auteur": "Antoine de Saint-Exupéry",
+        "nombre_pages": 500,
+        "année_publication": 1880,
+        "disponible": false
+    },
+    "Harry Potter": {
+        "auteur": "JJ Rowlings",
+        "nombre_pages": 500,
+        "année_publication": 1998,
+        "disponible": true
+    },
+    "I l etait une fois": {
+        "auteur": "aziz",
+        "nombre_pages": 50,
+        "année_publication": 2025,
+        "disponible": true
+    }
+}
