@@ -141,33 +141,95 @@ class Bibliotheque:
         print("=" * 40 + "\n")
 
     # Chercher un livre 
-    def chercher_livre(self, titre: str):
-        """Chercher un livre par son titre"""
-        count = 0
-        livre_trouver = None
+    def chercher_livre(self, titre: str, exact_match: bool = False):
+        """
+        Chercher un livre par son titre.
+        Si exact_match est True, cherche une correspondance exacte (pour emprunt/suppression).
+        """
+        titre_recherche = titre.strip().lower()
+        resultats = []
         
-        # Trouver si le livre existe
         for livre in self.LISTE_LIVRES:
-            if titre.lower() in livre.titre.lower():
-                count += 1
-                livre_trouver = livre 
-        
-        # Si le livre a été trouvé
-        if livre_trouver:
-            print("\n" + "=" * 40) 
-            print(f"Le livre '{livre_trouver.titre}' a été trouvé : {livre_trouver}")
-            print(f"\nNombre d'exemplaires trouvés : {count}")
-            return livre_trouver
+            titre_livre_normalise = livre.titre.lower()
             
-        # Si le livre n'existe pas 
+            # Logique de correspondance
+            if exact_match:
+                if titre_livre_normalise == titre_recherche:
+                    resultats.append(livre)
+                    break # On s'arrête dès qu'on trouve la correspondance exacte
+            else: # Correspondance partielle (sous-chaîne)
+                if titre_recherche in titre_livre_normalise:
+                    resultats.append(livre)
+        
+            # Affichage et Retour
+        if resultats:
+            if exact_match and len(resultats) == 1:
+                # Pour l'emprunt/modification, on retourne l'objet unique
+                return resultats[0] 
+                    
+            # Affichage des résultats multiples ou partiels
+            print("\n" + "=" * 40)
+            print(f"RÉSULTATS DE RECHERCHE ({len(resultats)} trouvé(s))")
+            print("=" * 40)
+            for i, livre in enumerate(resultats, 1):
+                print(f"{i}. {livre}")
+            print("=" * 40 + "\n")
+                
+            # Dans le cas de l'emprunt, on ne peut pas choisir, on retourne le premier si on est en recherche exacte
+            return resultats[0] if exact_match else resultats
+        
+        # Si le livre n'existe pas
         print(f"Le livre '{titre}' n'existe pas.")
         return None
+            
+                
+    
+    # Modifier les informations d'un livre 
+    def modifier_livres(self, titre: str, nouveau_titre: str, nouvel_auteur : str, nouveau_nombre_pages: int, nouvelle_année_publication : int) :
+        """Modifier les informations d'un livre"""
+        livre = self.chercher_livre(titre, exact_match=True)
+        
+        if livre:
+            livre.titre = nouveau_titre
+            livre.auteur = nouvel_auteur
+            livre.nombre_pages = nouveau_nombre_pages
+            livre.année_publication = nouvelle_année_publication
+            self.sauvegarder_livres()
+            print(f"Le livre {livre.titre} a été modifié avec succès.")
+        else :
+            print(f"Le livre {titre} n'existe pas. ")
+    
+    # Supprimer un livre par son nom 
+    def supprimer_livre(self, titre):
+        """Supprimer un livre par son nom"""
+        
+        # Noramliser les titres
+        titre_saisi_noramlise = titre.strip().lower()
+        livre_a_suppimer = None
+        
+        # Chercher le livre a supprimer
+        for livre in self.LISTE_LIVRES :
+            if livre.titre.lower() == titre_saisi_noramlise :
+                livre_a_suppimer = livre
+                break
+        
+        # Supprimer le livre s'il existe 
+        if livre_a_suppimer :
+            self.LISTE_LIVRES.remove(livre_a_suppimer)
+            self.sauvegarder_livres()
+            
+            print(f"Le livre {livre_a_suppimer.titre} a été retiré de la bibliotheque avec succès.")
+        
+        #  Si le livre nexiste pas 
+        else :
+            print(f"Le livre {titre} n'existe pas.")
+            
         
     # Emprunter un livre 
     def emprunter_livre(self, titre: str):
         """Emprunter un livre"""
         # Chercher le livre
-        livre = self.chercher_livre(titre)
+        livre = self.chercher_livre(titre, exact_match=True)
         
         # Si le livre est trouvé et disponible
         if livre:
@@ -186,7 +248,7 @@ class Bibliotheque:
     def retourner_livre(self, titre: str):
         """Retourner un livre emprunté"""
         # Chercher le livre
-        livre = self.chercher_livre(titre)
+        livre = self.chercher_livre(titre, exact_match=True)
 
         # Si le livre est trouvé
         if livre:
@@ -225,6 +287,8 @@ if __name__ == "__main__":
         print("3. Chercher un livre")
         print("4. Emprunter un livre")
         print("5. Retourner un livre")
+        print("6. Modifier un livre ")
+        print("7. Supprimer un livre")
         print("0. Quitter")
         
         choix = input("\nChoisissez une option : ").strip()
@@ -242,6 +306,12 @@ if __name__ == "__main__":
         elif choix == '5':
             nom_livre = input("Entrez le nom du livre que vous voulez remettre : ").strip()
             ma_bibliotheque.retourner_livre(nom_livre)
+        elif choix == '6':
+            mofifier_livre = input("Entrez le nom du livre que vous voulez modifier : ").strip()
+            ma_bibliotheque.modifier_livres(mofifier_livre, input("Entrez le nouveau titre").strip(), input("Entrez le nouvel auteur : ").strip(), int(input("Entrez le nouveau nombre de pages : ")), int(input("Entrez la nouvelle année de publication :").strip()))
+        elif choix == '7':
+            livre_a_suppimer = input("Entrez le nom du livre que vous voulez supprimer : ").strip()
+            ma_bibliotheque.supprimer_livre(livre_a_suppimer)
         elif choix == '0':
             print("Vous avez quitté le programme.")
             break 
