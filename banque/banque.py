@@ -165,10 +165,8 @@ class Banque :
                     data = json.load(compte)
                     for numero_compte, infos in data.items() :
                         compte = CompteBancaire(
-                            numero_compte,
-                            infos['titulaire'],
                             infos['numero_compte'],
-                            int(infos['solde'])
+                            infos['titulaire'],
                         )
                         self.__comptes.append(compte)
                 print(f" le nombre de compte est : {len(self.__comptes)} chargé depuis {BANQUE}")
@@ -182,7 +180,7 @@ class Banque :
         try :
             data = {}
             for compte in self.__comptes :
-                data[compte.get_numero_compte] = compte.to_dict()
+                data[compte.get_numero_compte()] = compte.to_dict()
 
             with open(BANQUE, 'w', encoding='utf-8') as fichier :
                 json.dump(data, fichier, indent=4, ensure_ascii=False)
@@ -200,10 +198,10 @@ class Banque :
         """
         self.__comptes.append(compte)
         self.sauvegarder_comptes()
-        print(f"Le commpte No : {compte.get_numero_compte()} de Mme/M. {compte.titulaire} a ete ouvert avec succes.")
+        print(f"Le commpte No : {compte.get_numero_compte()} a ete ouvert avec succes.")
 
     # Ouvrir un compte de façon interactif
-    def ouvrir_compte_interactif(self, titulaire, numero_compte) :
+    def ouvrir_compte_interactif(self) :
         """
             Ouvrir un compte bancaire de façon interactif
 
@@ -239,29 +237,24 @@ class Banque :
                     print("Il faut au moins 100f pour ouvrir votre compte ")
                     continue
 
-                # Creer une instance de compte bancaire
-                compte = CompteBancaire(numero_compte, titulaire, solde)
+                #Vérification si le comte existe deja ou pas avant de creer
+                for compte in self.__comptes :
+                    if compte.get_numero_compte() == numero_compte :
+                        print(f" ❌ Erreur : le compte No {numero_compte} existe deja.")
+                        return
 
-                # ajouter le compte a la banque
-                self.ouvrir_compte(compte)
+                # Creation de compte
+                nouveau_compte = CompteBancaire(titulaire, numero_compte)
+
+                # Ajouter le compte a la banque
+                self.__comptes.append(nouveau_compte)
+                print(f" ✔ Le compte No : {numero_compte} a été crée avec succès.")
 
                 # Conitinuer ou sortir
                 continuer = input("Entrez le continuer ? (y/n) : ").strip()
                 if continuer.lower() != 'y' :
                     break
 
-
-                # Vérification si le comte existe deja ou pas avant de creer
-                #for compte in self.__comptes :
-                #    if compte.get_numero_compte() == numero_compte :
-                #        print(f" ❌ Erreur : le compte No {numero_compte} existe deja.")
-                #        return
-
-                # Creation de compte
-                #nouveau_compte = CompteBancaire(titulaire, numero_compte)
-                #self.__comptes.append(nouveau_compte)
-                #print(f" ✔ Le compte No : {numero_compte} a été crée avec succès.")
-                #return
             except exception as e :
                 print(f"Erreur : {e}")
 
@@ -454,11 +447,6 @@ if __name__ == "__main__":
     # Creer une banque 
     ma_banque = Banque("Banque Nationale")
     print(ma_banque)
-    
-    # Creation de que quelques comptes 
-    print("Ouverture de compte")
-    ma_banque.ouvrir_compte("Aziz", "A01")
-    ma_banque.ouvrir_compte("Baba", "A02")
     print()
         
         
@@ -491,9 +479,7 @@ if __name__ == "__main__":
 
         # Ouvrir un compte bancaire
         elif choice == '2' :
-            titulaire = input("Entrez le nom du titulaire :").strip()
-            numero_compte = input("Entrez le numero du compte :").strip()
-            ma_banque.ouvrir_compte(titulaire, numero_compte)
+            ma_banque.ouvrir_compte_interactif()
 
         # Faire un depot
         elif choice == '3' :

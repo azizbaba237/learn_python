@@ -1,1 +1,22 @@
-{}
+{
+    "AZIZ": {
+        "titulaire": "A01",
+        "numero_compte": "AZIZ",
+        "solde": 5000.0
+    },
+    "Baba": {
+        "titulaire": "A02",
+        "numero_compte": "Baba",
+        "solde": 5000.0
+    },
+    "John": {
+        "titulaire": "A03",
+        "numero_compte": "John",
+        "solde": 5000.0
+    },
+    "A01": {
+        "titulaire": "AZIZ",
+        "numero_compte": "A01",
+        "solde": 5000.0
+    }
+}
