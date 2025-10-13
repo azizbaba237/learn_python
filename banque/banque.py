@@ -2,7 +2,6 @@ import json
 import os 
 import datetime
 
-from lief import exception
 
 """
     Gestion de banque simple avec des comptes utilisateurs et des transactions basiques.
@@ -18,7 +17,7 @@ BANQUE = "banque.json"
 class CompteBancaire :
     """ Classe représentant le compte bancaire """
 
-    def __init__(self, titulaire, numero_compte):
+    def __init__(self, titulaire, numero_compte, solde):
         """
             Constructeur de compte bancaire
 
@@ -28,7 +27,7 @@ class CompteBancaire :
         """
         self.__titulaire = titulaire
         self.__numero_compte = numero_compte
-        self.__solde = 5000.0  # Solde initial du compte
+        self.__solde = solde # Solde initial du compte
         self.historique = [] # Historique des transactions
 
     # Convertit l'objet compte bancaire en fichier JSON
@@ -90,6 +89,10 @@ class CompteBancaire :
     def get_numero_compte(self) :
         return self.__numero_compte
 
+    # Recupere le titulaire du compte
+    def get_titulaire(self):
+        return self.__titulaire
+
     # Avoir les informations du compte 
     def get_infos(self) :
         """
@@ -135,7 +138,7 @@ class CompteBancaire :
             print(f"\n Historique des transactions pour le compte No : {self.__numero_compte} ")
             print("=" * 40)
             for transaction in self.historique :
-                print(f"\n Date : {transaction['date']}, \n Type : {transaction['type']}, \n Montant: {transaction['montant']} Fcfa, \n Solde apres transaction : {transaction['solde_apres_transaction']} Fcafa.")
+                print(f"\n Date : {transaction['date']}, \n Type : {transaction['type']}, \n Montant: {transaction['montant']} Fcfa, \n Solde apres transaction : {transaction['solde_apres_transaction']} Fcfa.")
                 
 
 # =================================================================
@@ -156,6 +159,9 @@ class Banque :
         self.__comptes = []
         self.charger_compte()
 
+    def __str__(self):
+        return f"Banque : {self.nom_banque}"
+
     # Charger tous les compte depuis le fichier JSON
     def charger_compte(self):
         """ Charger les comptes du fichier JSON """
@@ -165,8 +171,9 @@ class Banque :
                     data = json.load(compte)
                     for numero_compte, infos in data.items() :
                         compte = CompteBancaire(
-                            infos['numero_compte'],
                             infos['titulaire'],
+                            infos['numero_compte'],
+                            float(infos['solde'])
                         )
                         self.__comptes.append(compte)
                 print(f" le nombre de compte est : {len(self.__comptes)} chargé depuis {BANQUE}")
@@ -184,7 +191,7 @@ class Banque :
 
             with open(BANQUE, 'w', encoding='utf-8') as fichier :
                 json.dump(data, fichier, indent=4, ensure_ascii=False)
-            print(f"{len(self.__comptes)} a bien ete sauvegarder dans {BANQUE}")
+            print(f"{len(self.__comptes)} a bien été sauvegardé(s) dans {BANQUE}")
             return True
         except Exception as e :
             print(f"Erreur de sauvegarde {e}")
@@ -197,7 +204,6 @@ class Banque :
                     compte (CompteBancaire): ouvrir un compte dans la banque
         """
         self.__comptes.append(compte)
-        self.sauvegarder_comptes()
         print(f"Le commpte No : {compte.get_numero_compte()} a ete ouvert avec succes.")
 
     # Ouvrir un compte de façon interactif
@@ -230,32 +236,38 @@ class Banque :
                     continue
 
                 # Recuperer le solde
-                solde = int(input("Entrez le solde du compte : ").strip())
+                solde = float(input("Entrez le solde du compte : ").strip())
 
                 # Verifie si l'utilisateur n'a rien entrer
-                if not solde :
-                    print("Il faut au moins 100f pour ouvrir votre compte ")
+                if solde < 100 :
+                    print("Il faut au moins 100 Fcfa pour ouvrir votre compte ")
                     continue
 
                 #Vérification si le comte existe deja ou pas avant de creer
+                compte_existe = False
                 for compte in self.__comptes :
-                    if compte.get_numero_compte() == numero_compte :
-                        print(f" ❌ Erreur : le compte No {numero_compte} existe deja.")
-                        return
+                    if compte.get_numero_compte() == numero_compte or titulaire == compte.get_titulaire() :
+                        print(f" ❌ Erreur : le compte No {numero_compte} existe deja au nom de : {compte.get_titulaire()}")
+                        compte_existe = True
+                        break
+
+                if compte_existe :
+                    continue # ✔ Retourne au début de la boucle while
 
                 # Creation de compte
-                nouveau_compte = CompteBancaire(titulaire, numero_compte)
+                nouveau_compte = CompteBancaire(titulaire, numero_compte, solde)
 
                 # Ajouter le compte a la banque
                 self.__comptes.append(nouveau_compte)
-                print(f" ✔ Le compte No : {numero_compte} a été crée avec succès.")
+                self.sauvegarder_comptes()
+                print(f" ✔ Le compte No : {numero_compte} pour {nouveau_compte.get_titulaire()} a été crée avec succès.")
 
                 # Conitinuer ou sortir
-                continuer = input("Entrez le continuer ? (y/n) : ").strip()
+                continuer = input("Voulez vous continuer ? (y/n) : ").strip()
                 if continuer.lower() != 'y' :
                     break
 
-            except exception as e :
+            except Exception as e :
                 print(f"Erreur : {e}")
 
 
@@ -276,6 +288,7 @@ class Banque :
         for compte in self.__comptes :
             compte.get_infos()
             print("-" * 50)
+
 
 
     # Chercher uun compte 
@@ -313,6 +326,7 @@ class Banque :
 
         # Si le compte existe, faire le depot
         compte.deposer(montant)
+        self.sauvegarder_comptes() # ✔ Sauvegarder après modification
 
 
     #Effectuer un retrait
@@ -334,6 +348,7 @@ class Banque :
 
         # Si le compte existe, faire le retrait
         compte.retirer(montant)
+        self.sauvegarder_comptes() # ✔ Sauvegarder après modification
         
     # Afficher les information d'un compte
     def afficher_infos_compte(self, numero_compte) :
@@ -412,8 +427,8 @@ class Banque :
         if compte_source.get_solde() < solde_avant :
             # Le retrait a reussi, effectuer le depot
             compte_destinataire.deposer(montant)
-            print(f" Transfert de {montant }Fcfa effectué de {numero_compte_source} vers {numero_compte_destinataire}")
-
+            print(f" Transfert de {montant} Fcfa effectué de {numero_compte_source} vers {numero_compte_destinataire}")
+            self.sauvegarder_comptes()
 
     # Afficher l'historique des transactions
     def afficher_historique(self, numero_compte) :
@@ -474,8 +489,8 @@ if __name__ == "__main__":
 
         # Affiche tous les compte
         if choice == '1' :
-            #ma_banque.lister_tous_les_comptes()
-            ma_banque.charger_compte()
+            ma_banque.lister_tous_les_comptes()
+            #ma_banque.charger_compte()
 
         # Ouvrir un compte bancaire
         elif choice == '2' :
