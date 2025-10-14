@@ -6,6 +6,7 @@ import datetime
 """
     Gestion de banque simple avec des comptes utilisateurs et des transactions basiques.
 """
+
 # Recuperation du fichier JSON
 BANQUE = "banque.json"
 
