@@ -17,7 +17,7 @@ class Animal:
         return f"{self.nom} (Âge: {self.age} ans)"
 
     def se_presenter(self):
-        """ Retoure le nom et l'age de l'animal """
+        """ Retourne le nom et l'age de l'animal """
         print(f"Je suis {self.nom} et j'ai {self.age} ans.")
 
     def faire_du_bruit(self):
