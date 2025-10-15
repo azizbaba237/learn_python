@@ -18,13 +18,21 @@ class Etudiant :
         """ return le string """
         return f"{self.nom}"
 
+    def ajouter_note(self, note):
+        """ Ajouter la note """
+        try :
+            # S'assurer qu'on ajoute bien une note
+            self.note.append(float(note))
+
+        except ValueError :
+            print("Erreur : la valeur entrée doit etre un nombre.")
+
     def calculer_moyenne(self):
         """ calculer la moyenne """
         if not self.note :
             return 0
         somme = sum(self.note)
         moyenne = somme / len(self.note)
-        print(f"Le moyenne est {moyenne:.2f}")
         return moyenne
 
     def est_admis(self):
@@ -68,23 +76,31 @@ class Classe :
                    print("Le matricule est oligatoire.")
                    continue
 
-               # Recuperer la note
-               try :
-                   note = float(input("Entrez la note"))
-               except ValueError :
-                   print("Errerur de saisie : le note doit etre un nombre.")
-                   continue
-
-              # Enregistrer le nouvel etudiant
+               # Enregistrer le nouvel etudiant
                nouvel_etudiant = Etudiant(nom, prenom, matricule)
 
-               # Ajouter la note a l'etudiant
-               nouvel_etudiant.note.append(note)
+               # Boucle ajouter notes
+               while True :
+                   try :
+                       saisi_note = input("Entrez la note ou tapez (f) pour finir : ").strip().lower()
+                       if saisi_note == 'f':
+                           break
+
+                       # utiliser la methode d'Etuduant
+                       nouvel_etudiant.ajouter_note(saisi_note)
+
+                   except ValueError :
+                       print("Errerur de saisie : la note doit etre un nombre.")
+                       continue
+               # verifie au moins une note a été saisie
+               if not nouvel_etudiant.note :
+                   print("Attention l'eutidant n'a pas de note ")
+
 
                self.enregistrer_etudiant(nouvel_etudiant)
-               print(f"L'etudiant {nom}, prenom : {prenom}, matricule : {matricule}, note : {note} a bien ete cree. ")
+               print(f"L'etudiant {nom}, prenom : {prenom}, matricule : {matricule} a été crée avec succès. ")
 
-               continuer = input("Voulez vous ajoutrer un autre etudiant o/n ")
+               continuer = input("Voulez-vous ajouter un autre tudiant o/n ")
                if continuer not in ['o', 'oui'] :
                    break
             except  Exception as e:
@@ -100,7 +116,7 @@ class Classe :
 
         somme_moyenne_classe = 0
 
-        # PArcourir le liste de etudiants
+        # Parcourir le liste de etudiants
         for etudiant in self.liste_etudiant:
             # Calculer la moyenne de l'etudiant
             moyenne_etudiant  = etudiant.calculer_moyenne()
