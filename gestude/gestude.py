@@ -33,6 +33,7 @@ class Etudiant :
             return 0
         somme = sum(self.note)
         moyenne = somme / len(self.note)
+        print(f"{moyenne:.2f}")
         return moyenne
 
     def est_admis(self):
@@ -55,6 +56,21 @@ class Classe :
 
         self.liste_etudiant.append(etudiant)
         print(f"L'etudiant {etudiant.nom} a bien été crée ")
+
+    def afficher_tous_les_etudiants(self):
+        """ Affiche le nom, le prénom, les notes et le statut d'admission de tous les étudiants de la liste. """
+
+        print("\n--- Liste et statut des étudiants ---")
+
+        if self.liste_etudiant:
+            for etudiant in self.liste_etudiant:
+                etat_admission = "Admis" if etudiant.est_admis() else "échoué"
+                moyenne_individuelle = etudiant.calculer_moyenne()
+
+                print(f"\n Nom : {etudiant.nom} \n Prenom : {etudiant.prenom} \n Note : {etudiant.note} \n Moyenne : {moyenne_individuelle} \n Décision : {etat_admission}")
+        else :
+            print("La liste des etudiants est vide.")
+            return
 
     def ajouter_etudiant(self):
         """ Ajouter un etudiant en la liste """
@@ -206,7 +222,8 @@ if __name__=="__main__" :
         print("2. voir la moyenne de la calsse ")
         print("3. voir le meilleur Etudiant")
         print("4. voir le taux de reussite ")
-        print("5. Quitter le programme")
+        print("5. afficher tous les etudiants ")
+        print("q. Quitter le programme")
 
 
         try :
@@ -221,7 +238,9 @@ if __name__=="__main__" :
                 etudiant.meilleur_etudiant()
             elif choix == '4' :
                 etudiant.taux_reussite()
-            elif choix == '5':
+            elif choix == '5' :
+                etudiant.afficher_tous_les_etudiants()
+            elif choix == 'q':
                 print("Vous avez quitter le programme.")
                 break
 
