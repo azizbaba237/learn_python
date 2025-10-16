@@ -2,14 +2,12 @@ import json
 import os 
 import datetime
 
-
 """
     Gestion de banque simple avec des comptes utilisateurs et des transactions basiques.
 """
 
 # Recuperation du fichier JSON
 BANQUE = "banque.json"
-
 
 # =================================================================
 # CLASSE COMPTE BANCAIRE
@@ -42,7 +40,6 @@ class CompteBancaire :
     # Affichage standard
     def __str__(self):
         return f"\n Compte de : {self.__titulaire}, \n Numéro de compte : {self.__numero_compte}, \n Solde : {self.__solde} Fcfa."
-
 
     # Déposer de l'argent sur le compte 
     def deposer(self, montant, ) :
@@ -271,7 +268,6 @@ class Banque :
             except Exception as e :
                 print(f"Erreur : {e}")
 
-
     # Afficher tous les comptes
     def lister_tous_les_comptes(self):
         """ Afficher tous les comptes """
@@ -290,8 +286,6 @@ class Banque :
             compte.get_infos()
             print("-" * 50)
 
-
-
     # Chercher uun compte 
     def chercher_compte(self, numero_compte) :
         """
@@ -305,7 +299,6 @@ class Banque :
             if compte.get_numero_compte() == numero_compte :
                 return compte 
         return None
-
 
     #Effectuer un depot
     def effectuer_depot(self, numero_compte, montant) :
@@ -328,7 +321,6 @@ class Banque :
         # Si le compte existe, faire le depot
         compte.deposer(montant)
         self.sauvegarder_comptes() # ✔ Sauvegarder après modification
-
 
     #Effectuer un retrait
     def effectuer_retrait(self, numero_compte, montant) :

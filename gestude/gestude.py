@@ -33,7 +33,6 @@ class Etudiant :
             return 0
         somme = sum(self.note)
         moyenne = somme / len(self.note)
-        print(f"{moyenne:.2f}")
         return moyenne
 
     def est_admis(self):
@@ -43,6 +42,25 @@ class Etudiant :
             return True
         else:
             return False
+
+    def get_matricule(self):
+        return self.matricule
+
+    def get_info(self):
+        """ Getter pour avoir les informations d'un etudiant """
+
+        print("************* INFORMATION DE L'ETUDIANT **********")
+
+        moyenne = self.calculer_moyenne()
+        decision = "admis" if self.est_admis() else "refuser"
+
+        print(f"Nom: {self.nom}")
+        print(f"Prénomo: {self.prenom}")
+        print(f"Note : {self.note}")
+        print(f"Moyenne : {moyenne:.2f}")
+        print(f"Décision : {decision}")
+
+
 
 class Classe :
     """ classe  Etudiant"""
@@ -56,21 +74,6 @@ class Classe :
 
         self.liste_etudiant.append(etudiant)
         print(f"L'etudiant {etudiant.nom} a bien été crée ")
-
-    def afficher_tous_les_etudiants(self):
-        """ Affiche le nom, le prénom, les notes et le statut d'admission de tous les étudiants de la liste. """
-
-        print("\n--- Liste et statut des étudiants ---")
-
-        if self.liste_etudiant:
-            for etudiant in self.liste_etudiant:
-                etat_admission = "Admis" if etudiant.est_admis() else "échoué"
-                moyenne_individuelle = etudiant.calculer_moyenne()
-
-                print(f"\n Nom : {etudiant.nom} \n Prenom : {etudiant.prenom} \n Note : {etudiant.note} \n Moyenne : {moyenne_individuelle} \n Décision : {etat_admission}")
-        else :
-            print("La liste des etudiants est vide.")
-            return
 
     def ajouter_etudiant(self):
         """ Ajouter un etudiant en la liste """
@@ -121,6 +124,22 @@ class Classe :
                    break
             except  Exception as e:
                 print(f"Erreur : {e}")
+
+    def afficher_tous_les_etudiants(self):
+        """ Affiche le nom, le prénom, les notes et le statut d'admission de tous les étudiants de la liste. """
+
+        print("\n--- Liste et statut des étudiants ---")
+
+        if self.liste_etudiant:
+            for etudiant in self.liste_etudiant:
+                etat_admission = "Admis" if etudiant.est_admis() else "échoué"
+                moyenne_individuelle = etudiant.calculer_moyenne()
+
+                print(
+                    f"\n Nom : {etudiant.nom} \n Prenom : {etudiant.prenom} \n Note : {etudiant.note} \n Moyenne : {moyenne_individuelle} \n Décision : {etat_admission}")
+        else:
+            print("La liste des etudiants est vide.")
+            return
 
     def moyenne_classe(self):
         """ Calculer la moyenne de la classe """
@@ -179,7 +198,6 @@ class Classe :
         print(f"Sa moyenne est de : {moyenne_maximale:.2f}")
         print("-" * 30)
 
-
     def taux_reussite(self):
         """ retourne le pourcentage d'étudiants admis """
 
@@ -209,11 +227,58 @@ class Classe :
         print('-' * 30)
         return taux_de_reussite
 
+    def chercher_etudiant(self, matricule):
+        """ Chercher un etudiant """
+        matricule = matricule.strip().lower()
+
+        for etudiant in self.liste_etudiant:
+            if etudiant.matricule.lower() == matricule:
+                return etudiant
+        return None
+
+    def afficher_info_etudiant(self, matricule):
+        """ afficher les informations d'un etudiant """
+
+        # chercher etudiant
+        etudiant = self.chercher_etudiant(matricule)
+
+        if not etudiant :
+            print("L'etudiant n'existe pas dans la liste.")
+            return
+
+        etudiant.get_info()
+
+
 # Main
 if __name__=="__main__" :
 
     # Creation de l'instance de la classe
-    etudiant = Classe()
+    gestionnaire_classe = Classe()  # J'utilise un nom plus explicite ici
+
+    # ----------------------------------------------------
+    # Quelques etudiants pré-créés
+    # ----------------------------------------------------
+
+    # 1. Création de l'étudiant 'Aziz'
+    aziz = Etudiant("aziz", "baba", "A01")
+    aziz.ajouter_note(15)  # Utilise la méthode Etudiant.ajouter_note(note)
+    aziz.ajouter_note(18)
+    gestionnaire_classe.enregistrer_etudiant(aziz)  # Enregistrement dans la liste
+
+    # 2. Création de l'étudiant 'Karim'
+    karim = Etudiant("karim", "ali", "A02")
+    karim.ajouter_note(8)
+    karim.ajouter_note(11)
+    gestionnaire_classe.enregistrer_etudiant(karim)
+
+    # 3. Création de l'étudiant 'Sara'
+    sara = Etudiant("sara", "doe", "A03")
+    sara.ajouter_note(19)
+    sara.ajouter_note(10)
+    sara.ajouter_note(14)
+    gestionnaire_classe.enregistrer_etudiant(sara)
+
+    # ----------------------------------------------------
 
     while True :
 
@@ -223,6 +288,7 @@ if __name__=="__main__" :
         print("3. voir le meilleur Etudiant")
         print("4. voir le taux de reussite ")
         print("5. afficher tous les etudiants ")
+        print("6. afficher les informations d'un etudiant ")
         print("q. Quitter le programme")
 
 
@@ -231,15 +297,18 @@ if __name__=="__main__" :
             choix = input("Que souhaitez-vous faire ? ")
 
             if choix == '1' :
-                etudiant.ajouter_etudiant()
+                gestionnaire_classe.ajouter_etudiant()
             elif choix == '2' :
-                etudiant.moyenne_classe()
+                gestionnaire_classe.moyenne_classe()
             elif choix == '3' :
-                etudiant.meilleur_etudiant()
+                gestionnaire_classe.meilleur_etudiant()
             elif choix == '4' :
-                etudiant.taux_reussite()
+                gestionnaire_classe.taux_reussite()
             elif choix == '5' :
-                etudiant.afficher_tous_les_etudiants()
+                gestionnaire_classe.afficher_tous_les_etudiants()
+            elif choix == '6' :
+                matricule = input("Entrez le matricule: ").strip().lower()
+                gestionnaire_classe.afficher_info_etudiant(matricule)
             elif choix == 'q':
                 print("Vous avez quitter le programme.")
                 break
