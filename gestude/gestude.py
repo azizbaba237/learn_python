@@ -63,7 +63,7 @@ class Classe :
             try :
 
                # Recuperer le nom
-               nom = input("Entrez la nom ou tapez (q) pour quitter :").strip().lower()
+               nom = input("Entrez le nom ou tapez (q) pour quitter :").strip().lower()
                if nom == 'q':
                    break
 
@@ -73,7 +73,7 @@ class Classe :
                # Recuprer le matricule
                matricule = input("Entrez le matricule : ").strip().lower()
                if not matricule:
-                   print("Le matricule est oligatoire.")
+                   print("Le matricule est obligatoire")
                    continue
 
                # Enregistrer le nouvel etudiant
@@ -94,7 +94,7 @@ class Classe :
                        continue
                # verifie au moins une note a été saisie
                if not nouvel_etudiant.note :
-                   print("Attention l'eutidant n'a pas de note ")
+                   print("Attention l'etudiant n'a pas de note ")
 
 
                self.enregistrer_etudiant(nouvel_etudiant)
@@ -133,13 +133,98 @@ class Classe :
         print(f"La MOYENNE GÉNÉRALE de la classe est : {moyenne_generale:.2f}")
         print("-" * 30)
 
+        # retourne la moyenne generale
         return moyenne_generale
 
+    def meilleur_etudiant(self):
+        """ retourne l'étudiant avec la meilleure moyenne """
+
+        # Verifie si l'etudiant existe dans la liste
+        if not self.liste_etudiant :
+            return "La liste des etudiant est vide."
+
+        # Initialisation du meilleur etudiant et de la moyenne maximale
+        meilleur = None
+        moyenne_maximale = -1
+
+        # boubler dans la liste des etudiants
+        for etudiant in self.liste_etudiant :
+            # calculer la moyenne individuelle
+            moyenne_actuelle = etudiant.calculer_moyenne()
+
+            # obtenir le meilleur etudiant
+            if moyenne_actuelle > moyenne_maximale :
+                moyenne_maximale = moyenne_actuelle
+                meilleur = etudiant
+
+        # Affichage
+        print("-" * 30)
+        print(f"Le meilleur Etudiant est : {meilleur.nom} {meilleur.prenom}")
+        print(f"Sa moyenne est de : {moyenne_maximale:.2f}")
+        print("-" * 30)
 
 
+    def taux_reussite(self):
+        """ retourne le pourcentage d'étudiants admis """
+
+        # verifie si le liste des etuduant est vide
+        if not self.liste_etudiant :
+            return "Aucun etudiant n'est enregistrer."
+
+        # Initialisation
+        admis_compteur = 0
+
+        # Recuperation du nombre d'etudiant
+        nombre_total_etudiants = len(self.liste_etudiant)
+
+        # Boucler
+        for etudiant in self.liste_etudiant:
+            if etudiant.est_admis():
+                admis_compteur += 1
+
+        # Calcul du taux de reussite
+        taux_de_reussite = (admis_compteur / nombre_total_etudiants) * 100
+
+        # Affichage
+        print('-' * 30)
+        print(f"Le Nombre d'etudiant inscrit est de : {nombre_total_etudiants}")
+        print(f"Le nombre d'admis est de : {admis_compteur}")
+        print(f"Le taux de reussite est de : {taux_de_reussite:.2f} % ")
+        print('-' * 30)
+        return taux_de_reussite
 
 # Main
-nouvel_etuduant = Classe()
-nouvel_etuduant.ajouter_etudiant()
-print()
-nouvel_etuduant.moyenne_classe()
+if __name__=="__main__" :
+
+    # Creation de l'instance de la classe
+    etudiant = Classe()
+
+    while True :
+
+        print("************** Porgramme de Gestion des Etudiants ******************")
+        print("1. Ajouter un Etudiant")
+        print("2. voir la moyenne de la calsse ")
+        print("3. voir le meilleur Etudiant")
+        print("4. voir le taux de reussite ")
+        print("5. Quitter le programme")
+
+
+        try :
+            print()
+            choix = input("Que souhaitez-vous faire ? ")
+
+            if choix == '1' :
+                etudiant.ajouter_etudiant()
+            elif choix == '2' :
+                etudiant.moyenne_classe()
+            elif choix == '3' :
+                etudiant.meilleur_etudiant()
+            elif choix == '4' :
+                etudiant.taux_reussite()
+            elif choix == '5':
+                print("Vous avez quitter le programme.")
+                break
+
+        except Exception as e :
+            print(f"Erreur : choix non valide. {e}")
+            continue

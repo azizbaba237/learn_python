@@ -163,7 +163,7 @@ class Banque :
     def __str__(self):
         return f"Banque : {self.nom_banque}"
 
-    # Charger tous les compte depuis le fichier JSON
+    # Charger tous les comptes depuis le fichier JSON
     def charger_compte(self):
         """ Charger les comptes du fichier JSON """
         try :
