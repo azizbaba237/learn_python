@@ -4,6 +4,9 @@
         Objectif : Manipuler des listes d'objets
         Concepts : Classes, listes, méthodes de classe
 """
+# =================================================================
+# CLASSE ETUDIANT
+# =================================================================
 class Etudiant :
     """ classe Etudiant"""
 
@@ -53,15 +56,19 @@ class Etudiant :
 
         moyenne = self.calculer_moyenne()
         decision = "admis" if self.est_admis() else "refuser"
+        matricule =self.get_matricule()
 
+        print(f"Matricule : {matricule}")
         print(f"Nom: {self.nom}")
-        print(f"Prénomo: {self.prenom}")
+        print(f"Prénom: {self.prenom}")
         print(f"Note : {self.note}")
         print(f"Moyenne : {moyenne:.2f}")
         print(f"Décision : {decision}")
 
 
-
+# =================================================================
+# CLASSE CLASSE
+# =================================================================
 class Classe :
     """ classe  Etudiant"""
 
@@ -136,7 +143,7 @@ class Classe :
                 moyenne_individuelle = etudiant.calculer_moyenne()
 
                 print(
-                    f"\n Nom : {etudiant.nom} \n Prenom : {etudiant.prenom} \n Note : {etudiant.note} \n Moyenne : {moyenne_individuelle} \n Décision : {etat_admission}")
+                    f"\n Matricule : {etudiant.matricule} \n Nom : {etudiant.nom} \n Prenom : {etudiant.prenom} \n Note : {etudiant.note} \n Moyenne : {moyenne_individuelle:.2f} \n Décision : {etat_admission}")
         else:
             print("La liste des etudiants est vide.")
             return
@@ -242,14 +249,44 @@ class Classe :
         # chercher etudiant
         etudiant = self.chercher_etudiant(matricule)
 
+        # si l'etudiant n'existe pas dans la liste
         if not etudiant :
             print("L'etudiant n'existe pas dans la liste.")
             return
 
+        # Recuperer les informations l'etudiant
         etudiant.get_info()
+    
+    def supprimer_etudiant(self, matricule):
+        """ Supprimer un etudiant de la liste """
+
+        # Normaliser le matricule
+        matricule_saisi_normaliser = matricule.strip().lower()
+
+        # initialisation de l'etudiant a supprimer
+        etudiant_a_supprimer = None
+
+        # chercher le matricule a supprimer et l'afficher l'etudiant en question
+        for etudiant in self.liste_etudiant:
+            if etudiant.matricule.strip().lower() == matricule_saisi_normaliser:
+                etudiant_a_supprimer = etudiant
+                break
+
+        # Supprimer l'etudiant s'il existe
+        if etudiant_a_supprimer :
+            self.liste_etudiant.remove(etudiant_a_supprimer)
+            print(f"L'etudiant au matricule : {etudiant_a_supprimer.matricule} a ete retiré avec succes.")
+
+        # Si le matricule n'existe pas
+        else:
+            print(f"Le matricul {matricule} n'existe pas.")
 
 
-# Main
+
+
+# =================================================================
+# MAIN
+# =================================================================
 if __name__=="__main__" :
 
     # Creation de l'instance de la classe
@@ -281,15 +318,18 @@ if __name__=="__main__" :
     # ----------------------------------------------------
 
     while True :
-
+        print()
         print("************** Porgramme de Gestion des Etudiants ******************")
+        print()
         print("1. Ajouter un Etudiant")
         print("2. voir la moyenne de la calsse ")
         print("3. voir le meilleur Etudiant")
         print("4. voir le taux de reussite ")
         print("5. afficher tous les etudiants ")
         print("6. afficher les informations d'un etudiant ")
+        print("7. supprimer un etudiant")
         print("q. Quitter le programme")
+        print()
 
 
         try :
@@ -309,6 +349,10 @@ if __name__=="__main__" :
             elif choix == '6' :
                 matricule = input("Entrez le matricule: ").strip().lower()
                 gestionnaire_classe.afficher_info_etudiant(matricule)
+            elif choix == '7':
+                matricule = input("Entrez le matricule: ").strip().lower()
+                gestionnaire_classe.supprimer_etudiant(matricule)
+                gestionnaire_classe.afficher_tous_les_etudiants()
             elif choix == 'q':
                 print("Vous avez quitter le programme.")
                 break
