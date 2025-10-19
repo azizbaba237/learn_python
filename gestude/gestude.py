@@ -366,15 +366,15 @@ if __name__=="__main__" :
 
     while True :
         print()
-        print("************** Porgramme de Gestion des Etudiants ******************")
+        print("************** Programme de Gestion des étudiants ******************")
         print()
-        print("1. Ajouter un Etudiant")
-        print("2. voir la moyenne de la calsse ")
-        print("3. voir le meilleur Etudiant")
-        print("4. voir le taux de reussite ")
-        print("5. afficher tous les etudiants ")
-        print("6. afficher les informations d'un etudiant ")
-        print("7. supprimer un etudiant")
+        print("1. Ajouter un étudiant")
+        print("2. Voir la moyenne de la classe ")
+        print("3. Voir le meilleur étudiant")
+        print("4. Voir le taux de réussite ")
+        print("5. Afficher tous les étudiants ")
+        print("6. Afficher les informations d'un étudiant ")
+        print("7. Supprimer un étudiant")
         print("q. Quitter le programme")
         print()
 
@@ -383,27 +383,43 @@ if __name__=="__main__" :
             print()
             choix = input("Que souhaitez-vous faire ? ")
 
+            # Ajouter un étudiant
             if choix == '1' :
                 gestionnaire_classe.ajouter_etudiant()
+
+            # Moyenne de la classe
             elif choix == '2' :
                 gestionnaire_classe.moyenne_classe()
+
+            # Meilleur étudiant
             elif choix == '3' :
                 gestionnaire_classe.meilleur_etudiant()
+
+            # Taux de réussite
             elif choix == '4' :
                 gestionnaire_classe.taux_reussite()
+
+            # Afficher tous les étudiants
             elif choix == '5' :
                 gestionnaire_classe.afficher_tous_les_etudiants()
+
+            # Afficher les infirmations d'un étudiant
             elif choix == '6' :
                 matricule = input("Entrez le matricule: ").strip().lower()
                 gestionnaire_classe.afficher_info_etudiant(matricule)
+
+            #  Supprimer un étudiant
             elif choix == '7':
                 matricule = input("Entrez le matricule: ").strip().lower()
                 gestionnaire_classe.supprimer_etudiant(matricule)
                 gestionnaire_classe.afficher_tous_les_etudiants()
+
+             # quitter le porgramme
             elif choix == 'q':
                 print("Vous avez quitter le programme.")
                 break
 
+        # Exception pour les erreurs
         except Exception as e :
             print(f"Erreur : choix non valide. {e}")
             continue
