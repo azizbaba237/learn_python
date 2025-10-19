@@ -363,7 +363,6 @@ class Banque :
         # si le compte existe recuper les informations
         compte.get_infos()
 
-
     # Calcul total actif de la banque
     def calcul_total_actif(self):
 
@@ -371,7 +370,6 @@ class Banque :
         for compte in self.__comptes :
             total += compte.get_solde()
         return total
-
 
     # Obtenir les statistique de la banque
     def obtenir_statistique(self):

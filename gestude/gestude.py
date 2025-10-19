@@ -65,6 +65,9 @@ class Etudiant :
         print(f"Moyenne : {moyenne:.2f}")
         print(f"Décision : {decision}")
 
+    def vider_note(self):
+        """ Vider la note """
+        self.note = []
 
 # =================================================================
 # CLASSE CLASSE
@@ -329,6 +332,65 @@ class Classe :
         else:
             print(f"Le matricule {matricule} n'existe pas.")
 
+    def modifier_etudiant(self, matricule):
+        """
+            Cherche, affiche les infos, et permet de modifier le nom, le prénom et les notes
+            d'un étudiant en fonction de son matricule.
+        """
+
+        print()
+        print("************ MODIFIER LES INFORMATIONS  **************")
+        print()
+
+        # Chercher l'étudiant qu'on souhaite modifier les informations
+        etudiant_a_modifier = self.chercher_etudiant(matricule)
+
+        # chercher l'étudiant
+        if not etudiant_a_modifier :
+            print(f"L'étudiant {matricule} n'existe pas dans la liste.")
+            return
+
+        # 2. AFFICHER LES INFOS ACTUELLES
+        print("\n--- Informations Actuelles ---")
+        etudiant_a_modifier.get_info()  # Utilise la méthode d'affichage existante
+        print("------------------------------\n")
+
+        # 3. MODIFICATION DU NOM ET PRÉNOM
+
+        # Nouveau nom / laisser vide pour conserver l'ancien
+        nouveau_nom = input(f"Entrez le nouveau nom ( Actuel Nom : {etudiant_a_modifier.nom} ), Ne tapez rien pour conserver l'ancien : ").strip().lower()
+        if nouveau_nom :
+            etudiant_a_modifier.nom = nouveau_nom
+
+        # Nouveau prénom / laisser vide pour conserver l'ancien
+        nouveau_prenom = input(f"Entrez le nouveau prénom ( Actuel : {etudiant_a_modifier.prenom} ), Ne tapez rien pour conserver l'ancien : ").strip().lower()
+        if nouveau_prenom :
+            etudiant_a_modifier.prenom = nouveau_prenom
+
+        # 4 AJOUTER LES NOUVELLES NOTES
+
+        choix_notes = input("Vous-vous modifier les notes de cet étudiant o/n ? ")
+        if choix_notes in ['o', 'oui'] :
+
+            # vider les anciennes note
+            etudiant_a_modifier.vider_note()
+            print("Les anciennes notes éffacé. place à la saisie des nouvelles notes.")
+
+            # Boucle de saisi des nouvelles notes
+            while True :
+                saisi_note= input("Entrez la note ou tapez ( f ) pour quitter : ")
+                if saisi_note == 'f':
+                    break
+
+                # utilisation de la methode existante
+                etudiant_a_modifier.ajouter_note(saisi_note)
+
+        # 5. CONFIRMATION FINALE
+
+        print(f"\n✅ Les informations de l'étudiant {etudiant_a_modifier.nom} ({matricule}) ont été mises à jour avec succès.")
+        print("\n--- Nouvelles Informations ---")
+        etudiant_a_modifier.get_info()
+
 
 
 # =================================================================
@@ -375,6 +437,7 @@ if __name__=="__main__" :
         print("5. Afficher tous les étudiants ")
         print("6. Afficher les informations d'un étudiant ")
         print("7. Supprimer un étudiant")
+        print("8. Modifier un étudiant")
         print("q. Quitter le programme")
         print()
 
@@ -414,7 +477,12 @@ if __name__=="__main__" :
                 gestionnaire_classe.supprimer_etudiant(matricule)
                 gestionnaire_classe.afficher_tous_les_etudiants()
 
-             # quitter le porgramme
+            # Modifier un étudiant
+            elif choix == '8':
+                matricule = input("Entrez le matricule: ").strip().lower()
+                gestionnaire_classe.modifier_etudiant(matricule)
+
+             # quitter le programme
             elif choix == 'q':
                 print("Vous avez quitter le programme.")
                 break
