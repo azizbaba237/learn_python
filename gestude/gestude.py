@@ -8,7 +8,7 @@
 # CLASSE ETUDIANT
 # =================================================================
 class Etudiant :
-    """ classe Etudiant"""
+    """ classe Etudiant """
 
     def __init__(self, nom, prenom, matricule):
         """ initialisation de la classe Etudiant """
@@ -50,7 +50,7 @@ class Etudiant :
         return self.matricule
 
     def get_info(self):
-        """ Getter pour avoir les informations d'un etudiant """
+        """ Getter pour avoir les informations d'un étudiant """
 
         print("************* INFORMATION DE L'ETUDIANT **********")
 
@@ -77,56 +77,74 @@ class Classe :
         self.liste_etudiant = []
 
     def enregistrer_etudiant(self, etudiant : Etudiant):
-        """ enregistrer un etudiant """
+        """ enregistrer un étudiant """
 
         self.liste_etudiant.append(etudiant)
-        print(f"L'etudiant {etudiant.nom} a bien été crée ")
+        print(f"L'étudiant {etudiant.nom} a bien été crée ")
 
     def ajouter_etudiant(self):
-        """ Ajouter un etudiant en la liste """
+        """ Ajouter un étudiant en la liste """
+
+        print()
+        print("************ AJOUTER UN ETUDIANT **************")
+        print()
 
         while True :
             try :
 
-               # Recuperer le nom
-               nom = input("Entrez le nom ou tapez (q) pour quitter :").strip().lower()
+               # Récupérer le nom
+               nom = input("Entrez le nom de l'étudiant ou tapez (q) pour quitter : ").strip().lower()
                if nom == 'q':
                    break
 
-               # Récuperer le prenom
-               prenom = input("entrez le prenom : ").strip().lower()
+               # Récupérer le prenom
+               prenom = input("Entrez le prénom : ").strip().lower()
 
-               # Recuprer le matricule
-               matricule = input("Entrez le matricule : ").strip().lower()
-               if not matricule:
+               # Récupérer le matricule
+               matricule_saisi = input("Entrez le matricule : ").strip().lower()
+               if not matricule_saisi:
                    print("Le matricule est obligatoire")
                    continue
 
-               # Enregistrer le nouvel etudiant
-               nouvel_etudiant = Etudiant(nom, prenom, matricule)
+              # Si l'utilisateur entre le meme matricule
+               matricule_existe = False
+               # boucler sur la liste des étudiants pour voir si le matricule existe deja
+               for etudiant in self.liste_etudiant:
+                   if etudiant.get_matricule().lower() == matricule_saisi:
+                       print(f"Le matricule : {matricule_saisi} existe déjà au nom de : {etudiant.nom}.")
+                       print()
+                       matricule_existe = True
+                       break
 
-               # Boucle ajouter notes
+               # si le matricule existe de deja
+               if matricule_existe :
+                   continue # ✔ Retourne au début de la boucle while
+
+               # Enregistrer le nouvel etudiant
+               nouvel_etudiant = Etudiant(nom, prenom, matricule_saisi)
+
+               # Boucle pour ajouter la ou les notes
                while True :
                    try :
                        saisi_note = input("Entrez la note ou tapez (f) pour finir : ").strip().lower()
                        if saisi_note == 'f':
                            break
 
-                       # utiliser la methode d'Etuduant
+                       # utiliser la methode d'étudiant
                        nouvel_etudiant.ajouter_note(saisi_note)
 
                    except ValueError :
-                       print("Errerur de saisie : la note doit etre un nombre.")
+                       print("Erreur de saisie : la note doit etre un nombre.")
                        continue
-               # verifie au moins une note a été saisie
+               # vérifie au moins une note a été saisie
                if not nouvel_etudiant.note :
-                   print("Attention l'etudiant n'a pas de note ")
+                   print("Attention l'étudiant n'a pas de note ")
 
 
                self.enregistrer_etudiant(nouvel_etudiant)
-               print(f"L'etudiant {nom}, prenom : {prenom}, matricule : {matricule} a été crée avec succès. ")
+               print(f"L'étudiant Nom : {nom}, Prénom : {prenom}, Matricule : {matricule_saisi} a été crée avec succès. ")
 
-               continuer = input("Voulez-vous ajouter un autre tudiant o/n ")
+               continuer = input("Voulez-vous ajouter un autre étudiant o/n ")
                if continuer not in ['o', 'oui'] :
                    break
             except  Exception as e:
@@ -135,32 +153,39 @@ class Classe :
     def afficher_tous_les_etudiants(self):
         """ Affiche le nom, le prénom, les notes et le statut d'admission de tous les étudiants de la liste. """
 
-        print("\n--- Liste et statut des étudiants ---")
+        print()
+        print("************ LISTE ET SATUS DES ETUDIANTS **************")
+        print()
 
         if self.liste_etudiant:
             for etudiant in self.liste_etudiant:
-                etat_admission = "Admis" if etudiant.est_admis() else "échoué"
+                etat_admission = "Admis" if etudiant.est_admis() else "échoué(e)"
                 moyenne_individuelle = etudiant.calculer_moyenne()
 
                 print(
-                    f"\n Matricule : {etudiant.matricule} \n Nom : {etudiant.nom} \n Prenom : {etudiant.prenom} \n Note : {etudiant.note} \n Moyenne : {moyenne_individuelle:.2f} \n Décision : {etat_admission}")
+                    f"\n Matricule : {etudiant.matricule} \n Nom : {etudiant.nom} \n Prénom : {etudiant.prenom} \n Note : {etudiant.note} \n Moyenne : {moyenne_individuelle:.2f} \n Décision : {etat_admission}")
         else:
-            print("La liste des etudiants est vide.")
+            print("La liste des étudiants est vide.")
             return
 
     def moyenne_classe(self):
         """ Calculer la moyenne de la classe """
 
-        # verifie s'il ya les eutdiant dans la liste
+        print()
+        print("************ MOYENNE DE LA CLASSE **************")
+        print()
+
+        # vérifie s'il y a les étudiants dans la liste
         if not self.liste_etudiant :
-            print("Il y a aucun etudiant dans la liste. la moyenne de la classe est = 0")
+            print("Il n'y a aucun étudiant dans la liste. la moyenne de la classe est = 0")
             return 0
 
+        # Initialisation de la moyenne de la classe
         somme_moyenne_classe = 0
 
-        # Parcourir le liste de etudiants
+        # Parcourir la liste des étudiants
         for etudiant in self.liste_etudiant:
-            # Calculer la moyenne de l'etudiant
+            # Calculer la moyenne de l'étudiant
             moyenne_etudiant  = etudiant.calculer_moyenne()
 
             # cumuler les moyennes
@@ -171,6 +196,7 @@ class Classe :
         nombre_etudiant = len(self.liste_etudiant)
         moyenne_generale = somme_moyenne_classe / nombre_etudiant
 
+        print()
         print("-" * 30)
         print(f"La MOYENNE GÉNÉRALE de la classe est : {moyenne_generale:.2f}")
         print("-" * 30)
@@ -181,41 +207,49 @@ class Classe :
     def meilleur_etudiant(self):
         """ retourne l'étudiant avec la meilleure moyenne """
 
-        # Verifie si l'etudiant existe dans la liste
-        if not self.liste_etudiant :
-            return "La liste des etudiant est vide."
+        print()
+        print("************ MEILLEUR ETUDIANT **************")
+        print()
 
-        # Initialisation du meilleur etudiant et de la moyenne maximale
+        # Vérifie si l'étudiant existe dans la liste
+        if not self.liste_etudiant :
+            return "La liste des étudiant est vide."
+
+        # Initialisation du meilleur étudiant et de la moyenne maximale
         meilleur = None
         moyenne_maximale = -1
 
-        # boubler dans la liste des etudiants
+        # boucler dans la liste des étudiants
         for etudiant in self.liste_etudiant :
             # calculer la moyenne individuelle
             moyenne_actuelle = etudiant.calculer_moyenne()
 
-            # obtenir le meilleur etudiant
+            # obtenir le meilleur étudiant
             if moyenne_actuelle > moyenne_maximale :
                 moyenne_maximale = moyenne_actuelle
                 meilleur = etudiant
 
         # Affichage
         print("-" * 30)
-        print(f"Le meilleur Etudiant est : {meilleur.nom} {meilleur.prenom}")
-        print(f"Sa moyenne est de : {moyenne_maximale:.2f}")
+        print(f"Le meilleur étudiant est : {meilleur.nom} {meilleur.prenom}")
+        print(f"Sa moyenne est de : {moyenne_maximale:.2f} / 20")
         print("-" * 30)
 
     def taux_reussite(self):
         """ retourne le pourcentage d'étudiants admis """
 
-        # verifie si le liste des etuduant est vide
+        print()
+        print("************ TAUX DE REUSSITE  **************")
+        print()
+
+        # vérifie si la liste des étudiants est vide
         if not self.liste_etudiant :
-            return "Aucun etudiant n'est enregistrer."
+            return "Aucun étudiant n'est enregistrer."
 
         # Initialisation
         admis_compteur = 0
 
-        # Recuperation du nombre d'etudiant
+        # Recuperation du nombre d'étudiants
         nombre_total_etudiants = len(self.liste_etudiant)
 
         # Boucler
@@ -223,19 +257,25 @@ class Classe :
             if etudiant.est_admis():
                 admis_compteur += 1
 
-        # Calcul du taux de reussite
+        # Calcul du taux de réussite
         taux_de_reussite = (admis_compteur / nombre_total_etudiants) * 100
 
         # Affichage
         print('-' * 30)
-        print(f"Le Nombre d'etudiant inscrit est de : {nombre_total_etudiants}")
+        print(f"Le Nombre d'étudiant inscrit est de : {nombre_total_etudiants}")
         print(f"Le nombre d'admis est de : {admis_compteur}")
-        print(f"Le taux de reussite est de : {taux_de_reussite:.2f} % ")
+        print(f"Le taux de réussite est de : {taux_de_reussite:.2f} % ")
         print('-' * 30)
         return taux_de_reussite
 
     def chercher_etudiant(self, matricule):
         """ Chercher un etudiant """
+
+        print()
+        print("************ CHERCHER UN ETUDIANT **************")
+        print()
+
+        # Récuperation du matricule
         matricule = matricule.strip().lower()
 
         for etudiant in self.liste_etudiant:
@@ -244,43 +284,50 @@ class Classe :
         return None
 
     def afficher_info_etudiant(self, matricule):
-        """ afficher les informations d'un etudiant """
+        """ afficher les informations d'un étudiant """
 
-        # chercher etudiant
+        print()
+        print("************ LES INFORMATIONS D'UN ETUDIANT **************")
+        print()
+
+        # chercher étudiant
         etudiant = self.chercher_etudiant(matricule)
 
-        # si l'etudiant n'existe pas dans la liste
+        # si l'étudiant n'existe pas dans la liste
         if not etudiant :
-            print("L'etudiant n'existe pas dans la liste.")
+            print("L'étudiant n'existe pas dans la liste.")
             return
 
-        # Recuperer les informations l'etudiant
+        # Récupérer les informations l'étudiant
         etudiant.get_info()
     
     def supprimer_etudiant(self, matricule):
-        """ Supprimer un etudiant de la liste """
+        """ Supprimer un étudiant de la liste """
+
+        print()
+        print("************ SUPPRIMER UN ETUDIANT **************")
+        print()
 
         # Normaliser le matricule
         matricule_saisi_normaliser = matricule.strip().lower()
 
-        # initialisation de l'etudiant a supprimer
+        # initialisation de l'étudiant a supprimer
         etudiant_a_supprimer = None
 
-        # chercher le matricule a supprimer et l'afficher l'etudiant en question
+        # chercher le matricule à supprimer et l'afficher l'étudiant en question
         for etudiant in self.liste_etudiant:
             if etudiant.matricule.strip().lower() == matricule_saisi_normaliser:
                 etudiant_a_supprimer = etudiant
                 break
 
-        # Supprimer l'etudiant s'il existe
+        # Supprimer l'étudiant s'il existe
         if etudiant_a_supprimer :
             self.liste_etudiant.remove(etudiant_a_supprimer)
-            print(f"L'etudiant au matricule : {etudiant_a_supprimer.matricule} a ete retiré avec succes.")
+            print(f"L'étudiant au matricule : {etudiant_a_supprimer.matricule} a été retiré avec succès.")
 
         # Si le matricule n'existe pas
         else:
-            print(f"Le matricul {matricule} n'existe pas.")
-
+            print(f"Le matricule {matricule} n'existe pas.")
 
 
 
