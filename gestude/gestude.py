@@ -1,493 +1,621 @@
 """
-    Gestion d'étudiants
+Système de Gestion d'Étudiants Optimisé
 
-        Objectif : Manipuler des listes d'objets
-        Concepts : Classes, listes, méthodes de classe
+Objectif : Gérer une classe d'étudiants avec leurs notes et résultats
+Concepts : POO, encapsulation, validation des données, séparation des responsabilités
 """
+
+from typing import List, Optional
+from dataclasses import dataclass, field
+
+
 # =================================================================
 # CLASSE ETUDIANT
 # =================================================================
-class Etudiant :
-    """ classe Etudiant """
+class Etudiant:
+    """
+    Représente un étudiant avec ses informations personnelles et académiques.
 
-    def __init__(self, nom, prenom, matricule):
-        """ initialisation de la classe Etudiant """
-        self.nom = nom
-        self.prenom = prenom
-        self.matricule = matricule
-        self.note = []
+    Attributs:
+        nom (str): Nom de famille de l'étudiant
+        prenom (str): Prénom de l'étudiant
+        matricule (str): Identifiant unique de l'étudiant
+        notes (List[float]): Liste des notes obtenues (privé via property)
+    """
 
-    def __str__(self):
-        """ return le string """
-        return f"{self.nom}"
+    # Constante de classe pour le seuil d'admission
+    SEUIL_ADMISSION = 10.0
+    NOTE_MIN = 0.0
+    NOTE_MAX = 20.0
 
-    def ajouter_note(self, note):
-        """ Ajouter la note """
-        try :
-            # S'assurer qu'on ajoute bien une note
-            self.note.append(float(note))
+    def __init__(self, nom: str, prenom: str, matricule: str):
+        """
+        Initialise un nouvel étudiant.
 
-        except ValueError :
-            print("Erreur : la valeur entrée doit etre un nombre.")
+        Args:
+            nom: Nom de famille (sera normalisé)
+            prenom: Prénom (sera normalisé)
+            matricule: Identifiant unique (obligatoire)
 
-    def calculer_moyenne(self):
-        """ calculer la moyenne """
-        if not self.note :
-            return 0
-        somme = sum(self.note)
-        moyenne = somme / len(self.note)
-        return moyenne
+        Raises:
+            ValueError: Si le matricule est vide
+        """
+        # Validation du matricule (obligatoire et non vide)
+        if not matricule or not matricule.strip():
+            raise ValueError("Le matricule ne peut pas être vide")
 
-    def est_admis(self):
-        """ Renvoie la decision """
-        moyenne = self.calculer_moyenne()
-        if moyenne >= 10:
+        # Normalisation des données : strip() + capitalize() pour format uniforme
+        self.nom = nom.strip().capitalize()
+        self.prenom = prenom.strip().capitalize()
+        self.matricule = matricule.strip().upper()  # Matricule en majuscules
+
+        # Attribut privé pour les notes (encapsulation)
+        self._notes: List[float] = []
+
+    def __str__(self) -> str:
+        """Représentation textuelle lisible de l'étudiant."""
+        return f"{self.nom} {self.prenom} ({self.matricule})"
+
+    def __repr__(self) -> str:
+        """Représentation technique pour le débogage."""
+        return f"Etudiant(nom='{self.nom}', prenom='{self.prenom}', matricule='{self.matricule}')"
+
+    # Property pour l'encapsulation des notes (lecture seule de l'extérieur)
+    @property
+    def notes(self) -> List[float]:
+        """Retourne une copie de la liste des notes (évite les modifications externes)."""
+        return self._notes.copy()
+
+    def ajouter_note(self, note: float) -> bool:
+        """
+        Ajoute une note avec validation stricte.
+
+        Args:
+            note: La note à ajouter (entre 0 et 20)
+
+        Returns:
+            bool: True si ajout réussi, False sinon
+
+        Raises:
+            ValueError: Si la note est hors limites
+        """
+        try:
+            # Conversion en float pour accepter "15" ou "15.5"
+            note_float = float(note)
+
+            # Validation de la plage de notes
+            if not (self.NOTE_MIN <= note_float <= self.NOTE_MAX):
+                raise ValueError(
+                    f"La note doit être entre {self.NOTE_MIN} et {self.NOTE_MAX}"
+                )
+
+            self._notes.append(note_float)
             return True
-        else:
+
+        except (ValueError, TypeError) as e:
+            # On relance l'exception pour que l'appelant puisse la gérer
+            raise ValueError(f"Note invalide : {e}")
+
+    def calculer_moyenne(self) -> float:
+        """
+        Calcule la moyenne arithmétique des notes.
+
+        Returns:
+            float: La moyenne (0 si aucune note)
+        """
+        # Utilisation de la fonction built-in sum() et len()
+        if not self._notes:
+            return 0.0
+        return sum(self._notes) / len(self._notes)
+
+    def est_admis(self) -> bool:
+        """
+        Détermine si l'étudiant est admis (moyenne >= seuil).
+
+        Returns:
+            bool: True si admis, False sinon
+        """
+        return self.calculer_moyenne() >= self.SEUIL_ADMISSION
+
+    def vider_notes(self) -> None:
+        """Supprime toutes les notes de l'étudiant."""
+        self._notes.clear()  # Plus efficace que self._notes = []
+
+    def get_info(self) -> dict:
+        """
+        Retourne un dictionnaire avec toutes les informations de l'étudiant.
+
+        Returns:
+            dict: Informations complètes (nom, prénom, matricule, notes, moyenne, statut)
+        """
+        moyenne = self.calculer_moyenne()
+        return {
+            'matricule': self.matricule,
+            'nom': self.nom,
+            'prenom': self.prenom,
+            'notes': self.notes,  # Utilise la property (copie)
+            'moyenne': moyenne,
+            'admis': self.est_admis(),
+            'decision': 'Admis' if self.est_admis() else 'Refusé'
+        }
+
+    def afficher_info(self) -> None:
+        """Affiche les informations formatées de l'étudiant dans la console."""
+        info = self.get_info()
+        print("\n" + "=" * 50)
+        print("INFORMATIONS DE L'ÉTUDIANT")
+        print("=" * 50)
+        print(f"Matricule    : {info['matricule']}")
+        print(f"Nom          : {info['nom']}")
+        print(f"Prénom       : {info['prenom']}")
+        print(f"Notes        : {info['notes']}")
+        print(f"Moyenne      : {info['moyenne']:.2f}/20")
+        print(f"Décision     : {info['decision']}")
+        print("=" * 50)
+
+
+# =================================================================
+# CLASSE CLASSE (Gestionnaire)
+# =================================================================
+class Classe:
+    """
+    Gère une collection d'étudiants et leurs statistiques.
+
+    Attributs:
+        etudiants (List[Etudiant]): Liste des étudiants inscrits
+        nom_classe (str): Nom optionnel de la classe
+    """
+
+    def __init__(self, nom_classe: str = "Classe par défaut"):
+        """
+        Initialise une nouvelle classe.
+
+        Args:
+            nom_classe: Nom descriptif de la classe
+        """
+        self._etudiants: List[Etudiant] = []
+        self.nom_classe = nom_classe
+
+    @property
+    def etudiants(self) -> List[Etudiant]:
+        """Retourne une copie de la liste des étudiants."""
+        return self._etudiants.copy()
+
+    @property
+    def nombre_etudiants(self) -> int:
+        """Retourne le nombre d'étudiants dans la classe."""
+        return len(self._etudiants)
+
+    def matricule_existe(self, matricule: str) -> bool:
+        """
+        Vérifie si un matricule existe déjà dans la classe.
+
+        Args:
+            matricule: Le matricule à vérifier
+
+        Returns:
+            bool: True si le matricule existe, False sinon
+        """
+        matricule_normalise = matricule.strip().upper()
+        # Utilisation de any() pour une recherche efficace
+        return any(
+            etudiant.matricule == matricule_normalise
+            for etudiant in self._etudiants
+        )
+
+    def chercher_etudiant(self, matricule: str) -> Optional[Etudiant]:
+        """
+        Recherche un étudiant par son matricule.
+
+        Args:
+            matricule: Le matricule à rechercher
+
+        Returns:
+            Etudiant ou None: L'étudiant trouvé ou None
+        """
+        matricule_normalise = matricule.strip().upper()
+        # Utilisation de next() avec générateur (plus efficace qu'une boucle)
+        return next(
+            (etudiant for etudiant in self._etudiants
+             if etudiant.matricule == matricule_normalise),
+            None  # Valeur par défaut si non trouvé
+        )
+
+    def ajouter_etudiant(self, etudiant: Etudiant) -> bool:
+        """
+        Ajoute un étudiant à la classe après validation.
+
+        Args:
+            etudiant: L'étudiant à ajouter
+
+        Returns:
+            bool: True si ajouté, False si matricule existe déjà
+
+        Raises:
+            TypeError: Si l'objet n'est pas de type Etudiant
+        """
+        # Validation du type
+        if not isinstance(etudiant, Etudiant):
+            raise TypeError("L'objet doit être de type Etudiant")
+
+        # Vérification de l'unicité du matricule
+        if self.matricule_existe(etudiant.matricule):
             return False
 
-    def get_matricule(self):
-        return self.matricule
+        self._etudiants.append(etudiant)
+        return True
 
-    def get_info(self):
-        """ Getter pour avoir les informations d'un étudiant """
+    def supprimer_etudiant(self, matricule: str) -> bool:
+        """
+        Supprime un étudiant de la classe.
 
-        print("************* INFORMATION DE L'ETUDIANT **********")
+        Args:
+            matricule: Le matricule de l'étudiant à supprimer
 
-        moyenne = self.calculer_moyenne()
-        decision = "admis" if self.est_admis() else "refuser"
-        matricule =self.get_matricule()
-
-        print(f"Matricule : {matricule}")
-        print(f"Nom: {self.nom}")
-        print(f"Prénom: {self.prenom}")
-        print(f"Note : {self.note}")
-        print(f"Moyenne : {moyenne:.2f}")
-        print(f"Décision : {decision}")
-
-    def vider_note(self):
-        """ Vider la note """
-        self.note = []
-
-# =================================================================
-# CLASSE CLASSE
-# =================================================================
-class Classe :
-    """ classe  Etudiant"""
-
-    def __init__(self):
-        """ initialisation de la classe Etudiant"""
-        self.liste_etudiant = []
-
-    def enregistrer_etudiant(self, etudiant : Etudiant):
-        """ enregistrer un étudiant """
-
-        self.liste_etudiant.append(etudiant)
-        print(f"L'étudiant {etudiant.nom} a bien été crée ")
-
-    def ajouter_etudiant(self):
-        """ Ajouter un étudiant en la liste """
-
-        print()
-        print("************ AJOUTER UN ETUDIANT **************")
-        print()
-
-        while True :
-            try :
-
-               # Récupérer le nom
-               nom = input("Entrez le nom de l'étudiant ou tapez (q) pour quitter : ").strip().lower()
-               if nom == 'q':
-                   break
-
-               # Récupérer le prenom
-               prenom = input("Entrez le prénom : ").strip().lower()
-
-               # Récupérer le matricule
-               matricule_saisi = input("Entrez le matricule : ").strip().lower()
-               if not matricule_saisi:
-                   print("Le matricule est obligatoire")
-                   continue
-
-              # Si l'utilisateur entre le meme matricule
-               matricule_existe = False
-               # boucler sur la liste des étudiants pour voir si le matricule existe deja
-               for etudiant in self.liste_etudiant:
-                   if etudiant.get_matricule().lower() == matricule_saisi:
-                       print(f"Le matricule : {matricule_saisi} existe déjà au nom de : {etudiant.nom}.")
-                       print()
-                       matricule_existe = True
-                       break
-
-               # si le matricule existe de deja
-               if matricule_existe :
-                   continue # ✔ Retourne au début de la boucle while
-
-               # Enregistrer le nouvel etudiant
-               nouvel_etudiant = Etudiant(nom, prenom, matricule_saisi)
-
-               # Boucle pour ajouter la ou les notes
-               while True :
-                   try :
-                       saisi_note = input("Entrez la note ou tapez (f) pour finir : ").strip().lower()
-                       if saisi_note == 'f':
-                           break
-
-                       # utiliser la methode d'étudiant
-                       nouvel_etudiant.ajouter_note(saisi_note)
-
-                   except ValueError :
-                       print("Erreur de saisie : la note doit etre un nombre.")
-                       continue
-               # vérifie au moins une note a été saisie
-               if not nouvel_etudiant.note :
-                   print("Attention l'étudiant n'a pas de note ")
-
-
-               self.enregistrer_etudiant(nouvel_etudiant)
-               print(f"L'étudiant Nom : {nom}, Prénom : {prenom}, Matricule : {matricule_saisi} a été crée avec succès. ")
-
-               continuer = input("Voulez-vous ajouter un autre étudiant o/n ")
-               if continuer not in ['o', 'oui'] :
-                   break
-            except  Exception as e:
-                print(f"Erreur : {e}")
-
-    def afficher_tous_les_etudiants(self):
-        """ Affiche le nom, le prénom, les notes et le statut d'admission de tous les étudiants de la liste. """
-
-        print()
-        print("************ LISTE ET SATUS DES ETUDIANTS **************")
-        print()
-
-        if self.liste_etudiant:
-            for etudiant in self.liste_etudiant:
-                etat_admission = "Admis" if etudiant.est_admis() else "échoué(e)"
-                moyenne_individuelle = etudiant.calculer_moyenne()
-
-                print(
-                    f"\n Matricule : {etudiant.matricule} \n Nom : {etudiant.nom} \n Prénom : {etudiant.prenom} \n Note : {etudiant.note} \n Moyenne : {moyenne_individuelle:.2f} \n Décision : {etat_admission}")
-        else:
-            print("La liste des étudiants est vide.")
-            return
-
-    def moyenne_classe(self):
-        """ Calculer la moyenne de la classe """
-
-        print()
-        print("************ MOYENNE DE LA CLASSE **************")
-        print()
-
-        # vérifie s'il y a les étudiants dans la liste
-        if not self.liste_etudiant :
-            print("Il n'y a aucun étudiant dans la liste. la moyenne de la classe est = 0")
-            return 0
-
-        # Initialisation de la moyenne de la classe
-        somme_moyenne_classe = 0
-
-        # Parcourir la liste des étudiants
-        for etudiant in self.liste_etudiant:
-            # Calculer la moyenne de l'étudiant
-            moyenne_etudiant  = etudiant.calculer_moyenne()
-
-            # cumuler les moyennes
-            somme_moyenne_classe += moyenne_etudiant
-
-
-        # Calculer la moyenne generale
-        nombre_etudiant = len(self.liste_etudiant)
-        moyenne_generale = somme_moyenne_classe / nombre_etudiant
-
-        print()
-        print("-" * 30)
-        print(f"La MOYENNE GÉNÉRALE de la classe est : {moyenne_generale:.2f}")
-        print("-" * 30)
-
-        # retourne la moyenne generale
-        return moyenne_generale
-
-    def meilleur_etudiant(self):
-        """ retourne l'étudiant avec la meilleure moyenne """
-
-        print()
-        print("************ MEILLEUR ETUDIANT **************")
-        print()
-
-        # Vérifie si l'étudiant existe dans la liste
-        if not self.liste_etudiant :
-            return "La liste des étudiant est vide."
-
-        # Initialisation du meilleur étudiant et de la moyenne maximale
-        meilleur = None
-        moyenne_maximale = -1
-
-        # boucler dans la liste des étudiants
-        for etudiant in self.liste_etudiant :
-            # calculer la moyenne individuelle
-            moyenne_actuelle = etudiant.calculer_moyenne()
-
-            # obtenir le meilleur étudiant
-            if moyenne_actuelle > moyenne_maximale :
-                moyenne_maximale = moyenne_actuelle
-                meilleur = etudiant
-
-        # Affichage
-        print("-" * 30)
-        print(f"Le meilleur étudiant est : {meilleur.nom} {meilleur.prenom}")
-        print(f"Sa moyenne est de : {moyenne_maximale:.2f} / 20")
-        print("-" * 30)
-
-    def taux_reussite(self):
-        """ retourne le pourcentage d'étudiants admis """
-
-        print()
-        print("************ TAUX DE REUSSITE  **************")
-        print()
-
-        # vérifie si la liste des étudiants est vide
-        if not self.liste_etudiant :
-            return "Aucun étudiant n'est enregistrer."
-
-        # Initialisation
-        admis_compteur = 0
-
-        # Recuperation du nombre d'étudiants
-        nombre_total_etudiants = len(self.liste_etudiant)
-
-        # Boucler
-        for etudiant in self.liste_etudiant:
-            if etudiant.est_admis():
-                admis_compteur += 1
-
-        # Calcul du taux de réussite
-        taux_de_reussite = (admis_compteur / nombre_total_etudiants) * 100
-
-        # Affichage
-        print('-' * 30)
-        print(f"Le Nombre d'étudiant inscrit est de : {nombre_total_etudiants}")
-        print(f"Le nombre d'admis est de : {admis_compteur}")
-        print(f"Le taux de réussite est de : {taux_de_reussite:.2f} % ")
-        print('-' * 30)
-        return taux_de_reussite
-
-    def chercher_etudiant(self, matricule):
-        """ Chercher un etudiant """
-
-        print()
-        print("************ CHERCHER UN ETUDIANT **************")
-        print()
-
-        # Récuperation du matricule
-        matricule = matricule.strip().lower()
-
-        for etudiant in self.liste_etudiant:
-            if etudiant.matricule.lower() == matricule:
-                return etudiant
-        return None
-
-    def afficher_info_etudiant(self, matricule):
-        """ afficher les informations d'un étudiant """
-
-        print()
-        print("************ LES INFORMATIONS D'UN ETUDIANT **************")
-        print()
-
-        # chercher étudiant
+        Returns:
+            bool: True si supprimé, False si non trouvé
+        """
         etudiant = self.chercher_etudiant(matricule)
+        if etudiant:
+            self._etudiants.remove(etudiant)
+            return True
+        return False
 
-        # si l'étudiant n'existe pas dans la liste
-        if not etudiant :
-            print("L'étudiant n'existe pas dans la liste.")
+    def calculer_moyenne_classe(self) -> float:
+        """
+        Calcule la moyenne générale de tous les étudiants.
+
+        Returns:
+            float: La moyenne de la classe (0 si aucun étudiant)
+        """
+        if not self._etudiants:
+            return 0.0
+
+        # Somme des moyennes individuelles / nombre d'étudiants
+        total = sum(etudiant.calculer_moyenne() for etudiant in self._etudiants)
+        return total / len(self._etudiants)
+
+    def obtenir_meilleur_etudiant(self) -> Optional[Etudiant]:
+        """
+        Trouve l'étudiant avec la meilleure moyenne.
+
+        Returns:
+            Etudiant ou None: Le meilleur étudiant ou None si liste vide
+        """
+        if not self._etudiants:
+            return None
+
+        # Utilisation de max() avec une clé personnalisée
+        return max(self._etudiants, key=lambda e: e.calculer_moyenne())
+
+    def calculer_taux_reussite(self) -> float:
+        """
+        Calcule le pourcentage d'étudiants admis.
+
+        Returns:
+            float: Taux de réussite en pourcentage (0 si aucun étudiant)
+        """
+        if not self._etudiants:
+            return 0.0
+
+        # Compte le nombre d'étudiants admis
+        admis = sum(1 for etudiant in self._etudiants if etudiant.est_admis())
+        return (admis / len(self._etudiants)) * 100
+
+    def obtenir_statistiques(self) -> dict:
+        """
+        Calcule toutes les statistiques de la classe.
+
+        Returns:
+            dict: Dictionnaire contenant toutes les statistiques
+        """
+        if not self._etudiants:
+            return {
+                'nombre_etudiants': 0,
+                'moyenne_classe': 0.0,
+                'taux_reussite': 0.0,
+                'meilleur_etudiant': None,
+                'nombre_admis': 0,
+                'nombre_refuses': 0
+            }
+
+        meilleur = self.obtenir_meilleur_etudiant()
+        admis = sum(1 for e in self._etudiants if e.est_admis())
+
+        return {
+            'nombre_etudiants': len(self._etudiants),
+            'moyenne_classe': self.calculer_moyenne_classe(),
+            'taux_reussite': self.calculer_taux_reussite(),
+            'meilleur_etudiant': str(meilleur) if meilleur else None,
+            'meilleur_moyenne': meilleur.calculer_moyenne() if meilleur else 0,
+            'nombre_admis': admis,
+            'nombre_refuses': len(self._etudiants) - admis
+        }
+
+    def afficher_statistiques(self) -> None:
+        """Affiche les statistiques de la classe de manière formatée."""
+        stats = self.obtenir_statistiques()
+
+        print("\n" + "=" * 60)
+        print(f"STATISTIQUES DE LA CLASSE : {self.nom_classe}")
+        print("=" * 60)
+        print(f"Nombre d'étudiants    : {stats['nombre_etudiants']}")
+        print(f"Moyenne de la classe  : {stats['moyenne_classe']:.2f}/20")
+        print(f"Taux de réussite      : {stats['taux_reussite']:.2f}%")
+        print(f"Nombre d'admis        : {stats['nombre_admis']}")
+        print(f"Nombre de refusés     : {stats['nombre_refuses']}")
+
+        if stats['meilleur_etudiant']:
+            print(f"Meilleur étudiant     : {stats['meilleur_etudiant']}")
+            print(f"Meilleure moyenne     : {stats['meilleur_moyenne']:.2f}/20")
+
+        print("=" * 60)
+
+    def afficher_tous_les_etudiants(self) -> None:
+        """Affiche la liste complète des étudiants avec leurs informations."""
+        if not self._etudiants:
+            print("\n⚠️  La liste des étudiants est vide.")
             return
 
-        # Récupérer les informations l'étudiant
-        etudiant.get_info()
-    
-    def supprimer_etudiant(self, matricule):
-        """ Supprimer un étudiant de la liste """
+        print("\n" + "=" * 80)
+        print(f"LISTE DES ÉTUDIANTS - {self.nom_classe}")
+        print("=" * 80)
 
-        print()
-        print("************ SUPPRIMER UN ETUDIANT **************")
-        print()
+        # Tri alphabétique par nom puis prénom
+        etudiants_tries = sorted(
+            self._etudiants,
+            key=lambda e: (e.nom, e.prenom)
+        )
 
-        # Normaliser le matricule
-        matricule_saisi_normaliser = matricule.strip().lower()
+        for i, etudiant in enumerate(etudiants_tries, 1):
+            info = etudiant.get_info()
+            print(f"\n{i}. {etudiant}")
+            print(f"   Matricule : {info['matricule']}")
+            print(f"   Notes     : {info['notes']}")
+            print(f"   Moyenne   : {info['moyenne']:.2f}/20")
+            print(f"   Statut    : {info['decision']}")
 
-        # initialisation de l'étudiant a supprimer
-        etudiant_a_supprimer = None
+        print("=" * 80)
 
-        # chercher le matricule à supprimer et l'afficher l'étudiant en question
-        for etudiant in self.liste_etudiant:
-            if etudiant.matricule.strip().lower() == matricule_saisi_normaliser:
-                etudiant_a_supprimer = etudiant
-                break
 
-        # Supprimer l'étudiant s'il existe
-        if etudiant_a_supprimer :
-            self.liste_etudiant.remove(etudiant_a_supprimer)
-            print(f"L'étudiant au matricule : {etudiant_a_supprimer.matricule} a été retiré avec succès.")
+# =================================================================
+# INTERFACE UTILISATEUR (CLI)
+# =================================================================
+class InterfaceGestion:
+    """
+    Gère l'interface en ligne de commande pour interagir avec la classe.
+    Séparation des responsabilités : UI séparée de la logique métier.
+    """
 
-        # Si le matricule n'existe pas
-        else:
-            print(f"Le matricule {matricule} n'existe pas.")
-
-    def modifier_etudiant(self, matricule):
+    def __init__(self, classe: Classe):
         """
-            Cherche, affiche les infos, et permet de modifier le nom, le prénom et les notes
-            d'un étudiant en fonction de son matricule.
+        Initialise l'interface avec une classe à gérer.
+
+        Args:
+            classe: Instance de Classe à gérer
         """
+        self.classe = classe
 
-        print()
-        print("************ MODIFIER LES INFORMATIONS  **************")
-        print()
+    def saisir_notes(self) -> List[float]:
+        """
+        Gère la saisie interactive des notes.
 
-        # Chercher l'étudiant qu'on souhaite modifier les informations
-        etudiant_a_modifier = self.chercher_etudiant(matricule)
+        Returns:
+            List[float]: Liste des notes saisies
+        """
+        notes = []
+        print("\n--- Saisie des notes ---")
+        print("Entrez les notes (entre 0 et 20), tapez 'f' pour finir")
 
-        # chercher l'étudiant
-        if not etudiant_a_modifier :
-            print(f"L'étudiant {matricule} n'existe pas dans la liste.")
-            return
+        while True:
+            try:
+                saisie = input("Note : ").strip().lower()
 
-        # 2. AFFICHER LES INFOS ACTUELLES
-        print("\n--- Informations Actuelles ---")
-        etudiant_a_modifier.get_info()  # Utilise la méthode d'affichage existante
-        print("------------------------------\n")
-
-        # 3. MODIFICATION DU NOM ET PRÉNOM
-
-        # Nouveau nom / laisser vide pour conserver l'ancien
-        nouveau_nom = input(f"Entrez le nouveau nom ( Actuel Nom : {etudiant_a_modifier.nom} ), Ne tapez rien pour conserver l'ancien : ").strip().lower()
-        if nouveau_nom :
-            etudiant_a_modifier.nom = nouveau_nom
-
-        # Nouveau prénom / laisser vide pour conserver l'ancien
-        nouveau_prenom = input(f"Entrez le nouveau prénom ( Actuel : {etudiant_a_modifier.prenom} ), Ne tapez rien pour conserver l'ancien : ").strip().lower()
-        if nouveau_prenom :
-            etudiant_a_modifier.prenom = nouveau_prenom
-
-        # 4 AJOUTER LES NOUVELLES NOTES
-
-        choix_notes = input("Vous-vous modifier les notes de cet étudiant o/n ? ")
-        if choix_notes in ['o', 'oui'] :
-
-            # vider les anciennes note
-            etudiant_a_modifier.vider_note()
-            print("Les anciennes notes éffacé. place à la saisie des nouvelles notes.")
-
-            # Boucle de saisi des nouvelles notes
-            while True :
-                saisi_note= input("Entrez la note ou tapez ( f ) pour quitter : ")
-                if saisi_note == 'f':
+                if saisie == 'f':
                     break
 
-                # utilisation de la methode existante
-                etudiant_a_modifier.ajouter_note(saisi_note)
+                note = float(saisie)
 
-        # 5. CONFIRMATION FINALE
+                # Validation via les constantes de la classe Etudiant
+                if not (Etudiant.NOTE_MIN <= note <= Etudiant.NOTE_MAX):
+                    print(f"❌ La note doit être entre {Etudiant.NOTE_MIN} et {Etudiant.NOTE_MAX}")
+                    continue
 
-        print(f"\n✅ Les informations de l'étudiant {etudiant_a_modifier.nom} ({matricule}) ont été mises à jour avec succès.")
-        print("\n--- Nouvelles Informations ---")
-        etudiant_a_modifier.get_info()
+                notes.append(note)
+                print(f"✅ Note {note} ajoutée")
 
+            except ValueError:
+                print("❌ Veuillez entrer un nombre valide")
 
+        return notes
 
-# =================================================================
-# MAIN
-# =================================================================
-if __name__=="__main__" :
+    def ajouter_etudiant_interactif(self) -> None:
+        """Gère l'ajout interactif d'un étudiant."""
+        print("\n" + "=" * 50)
+        print("AJOUTER UN NOUVEL ÉTUDIANT")
+        print("=" * 50)
 
-    # Creation de l'instance de la classe
-    gestionnaire_classe = Classe()  # J'utilise un nom plus explicite ici
+        try:
+            # Saisie des informations
+            nom = input("Nom : ").strip()
+            if not nom:
+                print("❌ Le nom est obligatoire")
+                return
 
-    # ----------------------------------------------------
-    # Quelques etudiants pré-créés
-    # ----------------------------------------------------
+            prenom = input("Prénom : ").strip()
+            if not prenom:
+                print("❌ Le prénom est obligatoire")
+                return
 
-    # 1. Création de l'étudiant 'Aziz'
-    aziz = Etudiant("aziz", "baba", "A01")
-    aziz.ajouter_note(15)  # Utilise la méthode Etudiant.ajouter_note(note)
-    aziz.ajouter_note(18)
-    gestionnaire_classe.enregistrer_etudiant(aziz)  # Enregistrement dans la liste
+            matricule = input("Matricule : ").strip()
+            if not matricule:
+                print("❌ Le matricule est obligatoire")
+                return
 
-    # 2. Création de l'étudiant 'Karim'
-    karim = Etudiant("karim", "ali", "A02")
-    karim.ajouter_note(8)
-    karim.ajouter_note(11)
-    gestionnaire_classe.enregistrer_etudiant(karim)
+            # Vérification de l'unicité du matricule
+            if self.classe.matricule_existe(matricule):
+                print(f"❌ Le matricule {matricule.upper()} existe déjà")
+                return
 
-    # 3. Création de l'étudiant 'Sara'
-    sara = Etudiant("sara", "doe", "A03")
-    sara.ajouter_note(19)
-    sara.ajouter_note(10)
-    sara.ajouter_note(14)
-    gestionnaire_classe.enregistrer_etudiant(sara)
+            # Création de l'étudiant
+            etudiant = Etudiant(nom, prenom, matricule)
 
-    # ----------------------------------------------------
+            # Saisie des notes
+            notes = self.saisir_notes()
+            for note in notes:
+                etudiant.ajouter_note(note)
 
-    while True :
-        print()
-        print("************** Programme de Gestion des étudiants ******************")
-        print()
+            # Ajout à la classe
+            if self.classe.ajouter_etudiant(etudiant):
+                print(f"\n✅ Étudiant {etudiant} ajouté avec succès !")
+                if not notes:
+                    print("⚠️  Attention : aucune note n'a été saisie")
+            else:
+                print("❌ Erreur lors de l'ajout de l'étudiant")
+
+        except Exception as e:
+            print(f"❌ Erreur : {e}")
+
+    def modifier_etudiant_interactif(self) -> None:
+        """Gère la modification interactive d'un étudiant."""
+        print("\n" + "=" * 50)
+        print("MODIFIER UN ÉTUDIANT")
+        print("=" * 50)
+
+        matricule = input("Matricule de l'étudiant à modifier : ").strip()
+        etudiant = self.classe.chercher_etudiant(matricule)
+
+        if not etudiant:
+            print(f"❌ Aucun étudiant trouvé avec le matricule {matricule}")
+            return
+
+        # Affichage des informations actuelles
+        print("\n--- Informations actuelles ---")
+        etudiant.afficher_info()
+
+        # Modification du nom
+        nouveau_nom = input(f"\nNouveau nom [{etudiant.nom}] (Entrée pour conserver) : ").strip()
+        if nouveau_nom:
+            etudiant.nom = nouveau_nom.capitalize()
+
+        # Modification du prénom
+        nouveau_prenom = input(f"Nouveau prénom [{etudiant.prenom}] (Entrée pour conserver) : ").strip()
+        if nouveau_prenom:
+            etudiant.prenom = nouveau_prenom.capitalize()
+
+        # Modification des notes
+        choix = input("\nModifier les notes ? (o/n) : ").strip().lower()
+        if choix in ['o', 'oui']:
+            etudiant.vider_notes()
+            notes = self.saisir_notes()
+            for note in notes:
+                etudiant.ajouter_note(note)
+
+        print(f"\n✅ Étudiant {etudiant} modifié avec succès !")
+        etudiant.afficher_info()
+
+    def supprimer_etudiant_interactif(self) -> None:
+        """Gère la suppression interactive d'un étudiant."""
+        print("\n" + "=" * 50)
+        print("SUPPRIMER UN ÉTUDIANT")
+        print("=" * 50)
+
+        matricule = input("Matricule de l'étudiant à supprimer : ").strip()
+        etudiant = self.classe.chercher_etudiant(matricule)
+
+        if not etudiant:
+            print(f"❌ Aucun étudiant trouvé avec le matricule {matricule}")
+            return
+
+        # Confirmation
+        print(f"\n⚠️  Vous allez supprimer : {etudiant}")
+        confirmation = input("Confirmer la suppression ? (o/n) : ").strip().lower()
+
+        if confirmation in ['o', 'oui']:
+            if self.classe.supprimer_etudiant(matricule):
+                print(f"✅ Étudiant {etudiant} supprimé avec succès")
+            else:
+                print("❌ Erreur lors de la suppression")
+        else:
+            print("❌ Suppression annulée")
+
+    def afficher_menu(self) -> None:
+        """Affiche le menu principal."""
+        print("\n" + "=" * 60)
+        print("SYSTÈME DE GESTION DES ÉTUDIANTS")
+        print("=" * 60)
         print("1. Ajouter un étudiant")
-        print("2. Voir la moyenne de la classe ")
-        print("3. Voir le meilleur étudiant")
-        print("4. Voir le taux de réussite ")
-        print("5. Afficher tous les étudiants ")
-        print("6. Afficher les informations d'un étudiant ")
-        print("7. Supprimer un étudiant")
-        print("8. Modifier un étudiant")
-        print("q. Quitter le programme")
-        print()
+        print("2. Modifier un étudiant")
+        print("3. Supprimer un étudiant")
+        print("4. Afficher un étudiant")
+        print("5. Afficher tous les étudiants")
+        print("6. Afficher les statistiques")
+        print("q. Quitter")
+        print("=" * 60)
 
+    def executer(self) -> None:
+        """Boucle principale de l'interface utilisateur."""
+        while True:
+            self.afficher_menu()
 
-        try :
-            print()
-            choix = input("Que souhaitez-vous faire ? ")
+            choix = input("\nVotre choix : ").strip().lower()
 
-            # Ajouter un étudiant
-            if choix == '1' :
-                gestionnaire_classe.ajouter_etudiant()
+            if choix == '1':
+                self.ajouter_etudiant_interactif()
 
-            # Moyenne de la classe
-            elif choix == '2' :
-                gestionnaire_classe.moyenne_classe()
+            elif choix == '2':
+                self.modifier_etudiant_interactif()
 
-            # Meilleur étudiant
-            elif choix == '3' :
-                gestionnaire_classe.meilleur_etudiant()
+            elif choix == '3':
+                self.supprimer_etudiant_interactif()
 
-            # Taux de réussite
-            elif choix == '4' :
-                gestionnaire_classe.taux_reussite()
+            elif choix == '4':
+                matricule = input("Matricule : ").strip()
+                etudiant = self.classe.chercher_etudiant(matricule)
+                if etudiant:
+                    etudiant.afficher_info()
+                else:
+                    print(f"❌ Aucun étudiant trouvé avec le matricule {matricule}")
 
-            # Afficher tous les étudiants
-            elif choix == '5' :
-                gestionnaire_classe.afficher_tous_les_etudiants()
+            elif choix == '5':
+                self.classe.afficher_tous_les_etudiants()
 
-            # Afficher les infirmations d'un étudiant
-            elif choix == '6' :
-                matricule = input("Entrez le matricule: ").strip().lower()
-                gestionnaire_classe.afficher_info_etudiant(matricule)
+            elif choix == '6':
+                self.classe.afficher_statistiques()
 
-            #  Supprimer un étudiant
-            elif choix == '7':
-                matricule = input("Entrez le matricule: ").strip().lower()
-                gestionnaire_classe.supprimer_etudiant(matricule)
-                gestionnaire_classe.afficher_tous_les_etudiants()
-
-            # Modifier un étudiant
-            elif choix == '8':
-                matricule = input("Entrez le matricule: ").strip().lower()
-                gestionnaire_classe.modifier_etudiant(matricule)
-
-             # quitter le programme
             elif choix == 'q':
-                print("Vous avez quitter le programme.")
+                print("\n👋 Au revoir !")
                 break
 
-        # Exception pour les erreurs
-        except Exception as e :
-            print(f"Erreur : choix non valide. {e}")
-            continue
+            else:
+                print("❌ Choix invalide, veuillez réessayer")
+
+
+# =================================================================
+# POINT D'ENTRÉE DU PROGRAMME
+# =================================================================
+def main():
+    """Fonction principale pour démarrer l'application."""
+    # Création de la classe
+    ma_classe = Classe("Terminale S1")
+
+    # Ajout d'étudiants de test
+    etudiants_test = [
+        ("Aziz", "Baba", "A01", [15, 18, 16]),
+        ("Karim", "Ali", "A02", [8, 11, 9]),
+        ("Sara", "Doe", "A03", [19, 17, 18]),
+    ]
+
+    for nom, prenom, matricule, notes in etudiants_test:
+        etudiant = Etudiant(nom, prenom, matricule)
+        for note in notes:
+            etudiant.ajouter_note(note)
+        ma_classe.ajouter_etudiant(etudiant)
+
+    # Lancement de l'interface
+    interface = InterfaceGestion(ma_classe)
+    interface.executer()
+
+
+if __name__ == "__main__":
+    main()
