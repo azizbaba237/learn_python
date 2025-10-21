@@ -1,12 +1,12 @@
 """
 Système de Gestion d'Étudiants Optimisé
 
-Objectif : Gérer une classe d'étudiants avec leurs notes et résultats
-Concepts : POO, encapsulation, validation des données, séparation des responsabilités
 """
-
+import json
 from typing import List, Optional
-from dataclasses import dataclass, field
+import os
+
+CLASSE_DATA = "gestude.json"
 
 
 # =================================================================
@@ -15,15 +15,8 @@ from dataclasses import dataclass, field
 class Etudiant:
     """
     Représente un étudiant avec ses informations personnelles et académiques.
-
-    Attributs:
-        nom (str): Nom de famille de l'étudiant
-        prenom (str): Prénom de l'étudiant
-        matricule (str): Identifiant unique de l'étudiant
-        notes (List[float]): Liste des notes obtenues (privé via property)
     """
 
-    # Constante de classe pour le seuil d'admission
     SEUIL_ADMISSION = 10.0
     NOTE_MIN = 0.0
     NOTE_MAX = 20.0
@@ -36,111 +29,74 @@ class Etudiant:
             nom: Nom de famille (sera normalisé)
             prenom: Prénom (sera normalisé)
             matricule: Identifiant unique (obligatoire)
-
-        Raises:
-            ValueError: Si le matricule est vide
         """
-        # Validation du matricule (obligatoire et non vide)
         if not matricule or not matricule.strip():
             raise ValueError("Le matricule ne peut pas être vide")
 
-        # Normalisation des données : strip() + capitalize() pour format uniforme
         self.nom = nom.strip().capitalize()
         self.prenom = prenom.strip().capitalize()
-        self.matricule = matricule.strip().upper()  # Matricule en majuscules
-
-        # Attribut privé pour les notes (encapsulation)
+        self.matricule = matricule.strip().upper()
         self._notes: List[float] = []
 
     def __str__(self) -> str:
-        """Représentation textuelle lisible de l'étudiant."""
         return f"{self.nom} {self.prenom} ({self.matricule})"
 
     def __repr__(self) -> str:
-        """Représentation technique pour le débogage."""
         return f"Etudiant(nom='{self.nom}', prenom='{self.prenom}', matricule='{self.matricule}')"
 
-    # Property pour l'encapsulation des notes (lecture seule de l'extérieur)
+    def to_dict(self) -> dict:
+        """Convertir l'objet Etudiant en dictionnaire pour le JSON"""
+        return {
+            "nom": self.nom,
+            "prenom": self.prenom,
+            "notes": self._notes
+        }
+
     @property
     def notes(self) -> List[float]:
-        """Retourne une copie de la liste des notes (évite les modifications externes)."""
+        """Retourne une copie de la liste des notes"""
         return self._notes.copy()
 
     def ajouter_note(self, note: float) -> bool:
-        """
-        Ajoute une note avec validation stricte.
-
-        Args:
-            note: La note à ajouter (entre 0 et 20)
-
-        Returns:
-            bool: True si ajout réussi, False sinon
-
-        Raises:
-            ValueError: Si la note est hors limites
-        """
+        """Ajoute une note avec validation stricte"""
         try:
-            # Conversion en float pour accepter "15" ou "15.5"
             note_float = float(note)
-
-            # Validation de la plage de notes
             if not (self.NOTE_MIN <= note_float <= self.NOTE_MAX):
-                raise ValueError(
-                    f"La note doit être entre {self.NOTE_MIN} et {self.NOTE_MAX}"
-                )
-
+                raise ValueError(f"La note doit être entre {self.NOTE_MIN} et {self.NOTE_MAX}")
             self._notes.append(note_float)
             return True
-
         except (ValueError, TypeError) as e:
-            # On relance l'exception pour que l'appelant puisse la gérer
             raise ValueError(f"Note invalide : {e}")
 
     def calculer_moyenne(self) -> float:
-        """
-        Calcule la moyenne arithmétique des notes.
-
-        Returns:
-            float: La moyenne (0 si aucune note)
-        """
-        # Utilisation de la fonction built-in sum() et len()
+        """Calcule la moyenne arithmétique des notes"""
         if not self._notes:
             return 0.0
         return sum(self._notes) / len(self._notes)
 
     def est_admis(self) -> bool:
-        """
-        Détermine si l'étudiant est admis (moyenne >= seuil).
-
-        Returns:
-            bool: True si admis, False sinon
-        """
+        """Détermine si l'étudiant est admis"""
         return self.calculer_moyenne() >= self.SEUIL_ADMISSION
 
     def vider_notes(self) -> None:
-        """Supprime toutes les notes de l'étudiant."""
-        self._notes.clear()  # Plus efficace que self._notes = []
+        """Supprime toutes les notes de l'étudiant"""
+        self._notes.clear()
 
     def get_info(self) -> dict:
-        """
-        Retourne un dictionnaire avec toutes les informations de l'étudiant.
-
-        Returns:
-            dict: Informations complètes (nom, prénom, matricule, notes, moyenne, statut)
-        """
+        """Retourne un dictionnaire avec toutes les informations"""
         moyenne = self.calculer_moyenne()
         return {
             'matricule': self.matricule,
             'nom': self.nom,
             'prenom': self.prenom,
-            'notes': self.notes,  # Utilise la property (copie)
+            'notes': self.notes,
             'moyenne': moyenne,
             'admis': self.est_admis(),
             'decision': 'Admis' if self.est_admis() else 'Refusé'
         }
 
     def afficher_info(self) -> None:
-        """Affiche les informations formatées de l'étudiant dans la console."""
+        """Affiche les informations formatées de l'étudiant"""
         info = self.get_info()
         print("\n" + "=" * 50)
         print("INFORMATIONS DE L'ÉTUDIANT")
@@ -158,157 +114,121 @@ class Etudiant:
 # CLASSE CLASSE (Gestionnaire)
 # =================================================================
 class Classe:
-    """
-    Gère une collection d'étudiants et leurs statistiques.
-
-    Attributs:
-        etudiants (List[Etudiant]): Liste des étudiants inscrits
-        nom_classe (str): Nom optionnel de la classe
-    """
+    """Gère une collection d'étudiants et leurs statistiques"""
 
     def __init__(self, nom_classe: str = "Classe par défaut"):
-        """
-        Initialise une nouvelle classe.
-
-        Args:
-            nom_classe: Nom descriptif de la classe
-        """
         self._etudiants: List[Etudiant] = []
         self.nom_classe = nom_classe
 
     @property
     def etudiants(self) -> List[Etudiant]:
-        """Retourne une copie de la liste des étudiants."""
+        """Retourne une copie de la liste des étudiants"""
         return self._etudiants.copy()
+
+    def charger_etudiants(self):
+        """Charge les étudiants depuis le fichier JSON"""
+        try:
+            if os.path.exists(CLASSE_DATA):
+                with open(CLASSE_DATA, 'r', encoding='utf-8') as fichier:
+                    data = json.load(fichier)
+                    for matricule, info in data.items():
+                        etudiant = Etudiant(
+                            info['nom'],
+                            info['prenom'],
+                            matricule
+                        )
+                        for note in info.get('notes', []):
+                            etudiant.ajouter_note(note)
+
+                        self._etudiants.append(etudiant)
+                print(f"✅ {len(self._etudiants)} étudiant(s) chargé(s) depuis le fichier {CLASSE_DATA}")
+            else:
+                print("ℹ️  Aucun fichier de données trouvé. Démarrage avec une classe vide.")
+        except (json.JSONDecodeError, FileNotFoundError) as e:
+            print(f"❌ Erreur de chargement : {e}")
+        except Exception as e:
+            print(f"❌ Erreur inattendue : {e}")
+
+    def sauvegarder_etudiants(self):
+        """Sauvegarde les étudiants dans le fichier JSON"""
+        try:
+            data = {}
+            for etudiant in self._etudiants:
+                data[etudiant.matricule] = etudiant.to_dict()
+
+            with open(CLASSE_DATA, 'w', encoding='utf-8') as fichier:
+                json.dump(data, fichier, indent=4, ensure_ascii=False)
+
+            print(f"💾 {len(self._etudiants)} étudiant(s) sauvegardé(s) dans {CLASSE_DATA}")
+            return True
+        except Exception as e:
+            print(f"❌ Erreur de sauvegarde : {e}")
+            return False
 
     @property
     def nombre_etudiants(self) -> int:
-        """Retourne le nombre d'étudiants dans la classe."""
         return len(self._etudiants)
 
     def matricule_existe(self, matricule: str) -> bool:
-        """
-        Vérifie si un matricule existe déjà dans la classe.
-
-        Args:
-            matricule: Le matricule à vérifier
-
-        Returns:
-            bool: True si le matricule existe, False sinon
-        """
+        """Vérifie si un matricule existe déjà"""
         matricule_normalise = matricule.strip().upper()
-        # Utilisation de any() pour une recherche efficace
         return any(
             etudiant.matricule == matricule_normalise
             for etudiant in self._etudiants
         )
 
     def chercher_etudiant(self, matricule: str) -> Optional[Etudiant]:
-        """
-        Recherche un étudiant par son matricule.
-
-        Args:
-            matricule: Le matricule à rechercher
-
-        Returns:
-            Etudiant ou None: L'étudiant trouvé ou None
-        """
+        """Recherche un étudiant par son matricule"""
         matricule_normalise = matricule.strip().upper()
-        # Utilisation de next() avec générateur (plus efficace qu'une boucle)
         return next(
             (etudiant for etudiant in self._etudiants
              if etudiant.matricule == matricule_normalise),
-            None  # Valeur par défaut si non trouvé
+            None
         )
 
     def ajouter_etudiant(self, etudiant: Etudiant) -> bool:
-        """
-        Ajoute un étudiant à la classe après validation.
-
-        Args:
-            etudiant: L'étudiant à ajouter
-
-        Returns:
-            bool: True si ajouté, False si matricule existe déjà
-
-        Raises:
-            TypeError: Si l'objet n'est pas de type Etudiant
-        """
-        # Validation du type
+        """Ajoute un étudiant à la classe"""
         if not isinstance(etudiant, Etudiant):
             raise TypeError("L'objet doit être de type Etudiant")
 
-        # Vérification de l'unicité du matricule
         if self.matricule_existe(etudiant.matricule):
             return False
 
         self._etudiants.append(etudiant)
+        self.sauvegarder_etudiants()  # ✅ CORRECTION : Sauvegarde automatique
         return True
 
     def supprimer_etudiant(self, matricule: str) -> bool:
-        """
-        Supprime un étudiant de la classe.
-
-        Args:
-            matricule: Le matricule de l'étudiant à supprimer
-
-        Returns:
-            bool: True si supprimé, False si non trouvé
-        """
+        """Supprime un étudiant de la classe"""
         etudiant = self.chercher_etudiant(matricule)
         if etudiant:
             self._etudiants.remove(etudiant)
+            self.sauvegarder_etudiants()
             return True
         return False
 
     def calculer_moyenne_classe(self) -> float:
-        """
-        Calcule la moyenne générale de tous les étudiants.
-
-        Returns:
-            float: La moyenne de la classe (0 si aucun étudiant)
-        """
+        """Calcule la moyenne générale de tous les étudiants"""
         if not self._etudiants:
             return 0.0
-
-        # Somme des moyennes individuelles / nombre d'étudiants
         total = sum(etudiant.calculer_moyenne() for etudiant in self._etudiants)
         return total / len(self._etudiants)
 
     def obtenir_meilleur_etudiant(self) -> Optional[Etudiant]:
-        """
-        Trouve l'étudiant avec la meilleure moyenne.
-
-        Returns:
-            Etudiant ou None: Le meilleur étudiant ou None si liste vide
-        """
+        """Trouve l'étudiant avec la meilleure moyenne"""
         if not self._etudiants:
             return None
-
-        # Utilisation de max() avec une clé personnalisée
         return max(self._etudiants, key=lambda e: e.calculer_moyenne())
 
     def calculer_taux_reussite(self) -> float:
-        """
-        Calcule le pourcentage d'étudiants admis.
-
-        Returns:
-            float: Taux de réussite en pourcentage (0 si aucun étudiant)
-        """
+        """Calcule le pourcentage d'étudiants admis"""
         if not self._etudiants:
             return 0.0
-
-        # Compte le nombre d'étudiants admis
         admis = sum(1 for etudiant in self._etudiants if etudiant.est_admis())
         return (admis / len(self._etudiants)) * 100
 
     def obtenir_statistiques(self) -> dict:
-        """
-        Calcule toutes les statistiques de la classe.
-
-        Returns:
-            dict: Dictionnaire contenant toutes les statistiques
-        """
+        """Calcule toutes les statistiques de la classe"""
         if not self._etudiants:
             return {
                 'nombre_etudiants': 0,
@@ -333,7 +253,7 @@ class Classe:
         }
 
     def afficher_statistiques(self) -> None:
-        """Affiche les statistiques de la classe de manière formatée."""
+        """Affiche les statistiques de la classe"""
         stats = self.obtenir_statistiques()
 
         print("\n" + "=" * 60)
@@ -352,7 +272,7 @@ class Classe:
         print("=" * 60)
 
     def afficher_tous_les_etudiants(self) -> None:
-        """Affiche la liste complète des étudiants avec leurs informations."""
+        """Affiche la liste complète des étudiants"""
         if not self._etudiants:
             print("\n⚠️  La liste des étudiants est vide.")
             return
@@ -361,7 +281,6 @@ class Classe:
         print(f"LISTE DES ÉTUDIANTS - {self.nom_classe}")
         print("=" * 80)
 
-        # Tri alphabétique par nom puis prénom
         etudiants_tries = sorted(
             self._etudiants,
             key=lambda e: (e.nom, e.prenom)
@@ -382,27 +301,13 @@ class Classe:
 # INTERFACE UTILISATEUR (CLI)
 # =================================================================
 class InterfaceGestion:
-    """
-    Gère l'interface en ligne de commande pour interagir avec la classe.
-    Séparation des responsabilités : UI séparée de la logique métier.
-    """
+    """Gère l'interface en ligne de commande"""
 
     def __init__(self, classe: Classe):
-        """
-        Initialise l'interface avec une classe à gérer.
-
-        Args:
-            classe: Instance de Classe à gérer
-        """
         self.classe = classe
 
     def saisir_notes(self) -> List[float]:
-        """
-        Gère la saisie interactive des notes.
-
-        Returns:
-            List[float]: Liste des notes saisies
-        """
+        """Gère la saisie interactive des notes"""
         notes = []
         print("\n--- Saisie des notes ---")
         print("Entrez les notes (entre 0 et 20), tapez 'f' pour finir")
@@ -416,7 +321,6 @@ class InterfaceGestion:
 
                 note = float(saisie)
 
-                # Validation via les constantes de la classe Etudiant
                 if not (Etudiant.NOTE_MIN <= note <= Etudiant.NOTE_MAX):
                     print(f"❌ La note doit être entre {Etudiant.NOTE_MIN} et {Etudiant.NOTE_MAX}")
                     continue
@@ -430,13 +334,12 @@ class InterfaceGestion:
         return notes
 
     def ajouter_etudiant_interactif(self) -> None:
-        """Gère l'ajout interactif d'un étudiant."""
+        """Gère l'ajout interactif d'un étudiant"""
         print("\n" + "=" * 50)
         print("AJOUTER UN NOUVEL ÉTUDIANT")
         print("=" * 50)
 
         try:
-            # Saisie des informations
             nom = input("Nom : ").strip()
             if not nom:
                 print("❌ Le nom est obligatoire")
@@ -452,20 +355,16 @@ class InterfaceGestion:
                 print("❌ Le matricule est obligatoire")
                 return
 
-            # Vérification de l'unicité du matricule
             if self.classe.matricule_existe(matricule):
                 print(f"❌ Le matricule {matricule.upper()} existe déjà")
                 return
 
-            # Création de l'étudiant
             etudiant = Etudiant(nom, prenom, matricule)
 
-            # Saisie des notes
             notes = self.saisir_notes()
             for note in notes:
                 etudiant.ajouter_note(note)
 
-            # Ajout à la classe
             if self.classe.ajouter_etudiant(etudiant):
                 print(f"\n✅ Étudiant {etudiant} ajouté avec succès !")
                 if not notes:
@@ -477,7 +376,7 @@ class InterfaceGestion:
             print(f"❌ Erreur : {e}")
 
     def modifier_etudiant_interactif(self) -> None:
-        """Gère la modification interactive d'un étudiant."""
+        """Gère la modification interactive d'un étudiant"""
         print("\n" + "=" * 50)
         print("MODIFIER UN ÉTUDIANT")
         print("=" * 50)
@@ -489,21 +388,17 @@ class InterfaceGestion:
             print(f"❌ Aucun étudiant trouvé avec le matricule {matricule}")
             return
 
-        # Affichage des informations actuelles
         print("\n--- Informations actuelles ---")
         etudiant.afficher_info()
 
-        # Modification du nom
         nouveau_nom = input(f"\nNouveau nom [{etudiant.nom}] (Entrée pour conserver) : ").strip()
         if nouveau_nom:
             etudiant.nom = nouveau_nom.capitalize()
 
-        # Modification du prénom
         nouveau_prenom = input(f"Nouveau prénom [{etudiant.prenom}] (Entrée pour conserver) : ").strip()
         if nouveau_prenom:
             etudiant.prenom = nouveau_prenom.capitalize()
 
-        # Modification des notes
         choix = input("\nModifier les notes ? (o/n) : ").strip().lower()
         if choix in ['o', 'oui']:
             etudiant.vider_notes()
@@ -511,11 +406,12 @@ class InterfaceGestion:
             for note in notes:
                 etudiant.ajouter_note(note)
 
+        self.classe.sauvegarder_etudiants()  # ✅ Sauvegarde après modification
         print(f"\n✅ Étudiant {etudiant} modifié avec succès !")
         etudiant.afficher_info()
 
     def supprimer_etudiant_interactif(self) -> None:
-        """Gère la suppression interactive d'un étudiant."""
+        """Gère la suppression interactive d'un étudiant"""
         print("\n" + "=" * 50)
         print("SUPPRIMER UN ÉTUDIANT")
         print("=" * 50)
@@ -527,7 +423,6 @@ class InterfaceGestion:
             print(f"❌ Aucun étudiant trouvé avec le matricule {matricule}")
             return
 
-        # Confirmation
         print(f"\n⚠️  Vous allez supprimer : {etudiant}")
         confirmation = input("Confirmer la suppression ? (o/n) : ").strip().lower()
 
@@ -540,7 +435,7 @@ class InterfaceGestion:
             print("❌ Suppression annulée")
 
     def afficher_menu(self) -> None:
-        """Affiche le menu principal."""
+        """Affiche le menu principal"""
         print("\n" + "=" * 60)
         print("SYSTÈME DE GESTION DES ÉTUDIANTS")
         print("=" * 60)
@@ -550,11 +445,12 @@ class InterfaceGestion:
         print("4. Afficher un étudiant")
         print("5. Afficher tous les étudiants")
         print("6. Afficher les statistiques")
+        print("7. Sauvegarder manuellement")
         print("q. Quitter")
         print("=" * 60)
 
     def executer(self) -> None:
-        """Boucle principale de l'interface utilisateur."""
+        """Boucle principale de l'interface utilisateur"""
         while True:
             self.afficher_menu()
 
@@ -583,7 +479,11 @@ class InterfaceGestion:
             elif choix == '6':
                 self.classe.afficher_statistiques()
 
+            elif choix == '7':
+                self.classe.sauvegarder_etudiants()
+
             elif choix == 'q':
+                self.classe.sauvegarder_etudiants()  # ✅ Sauvegarde avant de quitter
                 print("\n👋 Au revoir !")
                 break
 
@@ -595,24 +495,27 @@ class InterfaceGestion:
 # POINT D'ENTRÉE DU PROGRAMME
 # =================================================================
 def main():
-    """Fonction principale pour démarrer l'application."""
-    # Création de la classe
+    """Fonction principale pour démarrer l'application"""
     ma_classe = Classe("Terminale S1")
 
-    # Ajout d'étudiants de test
-    etudiants_test = [
-        ("Aziz", "Baba", "A01", [15, 18, 16]),
-        ("Karim", "Ali", "A02", [8, 11, 9]),
-        ("Sara", "Doe", "A03", [19, 17, 18]),
-    ]
+    # ✅ CORRECTION : Chargement au démarrage
+    ma_classe.charger_etudiants()
 
-    for nom, prenom, matricule, notes in etudiants_test:
-        etudiant = Etudiant(nom, prenom, matricule)
-        for note in notes:
-            etudiant.ajouter_note(note)
-        ma_classe.ajouter_etudiant(etudiant)
+    # Si la classe est vide, ajouter des données de test
+    if ma_classe.nombre_etudiants == 0:
+        print("\n📝 Création d'étudiants de test...")
+        etudiants_test = [
+            ("Aziz", "Baba", "A01", [15, 18, 16]),
+            ("Karim", "Ali", "A02", [8, 11, 9]),
+            ("Sara", "Doe", "A03", [19, 17, 18]),
+        ]
 
-    # Lancement de l'interface
+        for nom, prenom, matricule, notes in etudiants_test:
+            etudiant = Etudiant(nom, prenom, matricule)
+            for note in notes:
+                etudiant.ajouter_note(note)
+            ma_classe.ajouter_etudiant(etudiant)
+
     interface = InterfaceGestion(ma_classe)
     interface.executer()
 

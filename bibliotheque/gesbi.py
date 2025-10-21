@@ -75,6 +75,20 @@ class Bibliotheque:
         except Exception as e:
             print(f"❌ Erreur de sauvegarde : {e}")
             return False
+
+    # Afficher tous les livres
+    def afficher_livre(self):
+        """Pour afficher tous les livres"""
+        if not self.LISTE_LIVRES:
+            print("La liste des livres est vide.")
+            return
+
+        print("\n" + "=" * 40)
+        print(f"  LISTE DES LIVRES ({len(self.LISTE_LIVRES)} livre(s))")
+        print("=" * 40)
+        for i, livre in enumerate(self.LISTE_LIVRES, 1):
+            print(f"{i}. {livre}")
+        print("=" * 40 + "\n")
         
     # Ajouter un livre 
     def ajouter_livre(self, livre: Livre):
@@ -125,20 +139,6 @@ class Bibliotheque:
                 
             except Exception as e:
                 print(f"ERREUR : {e}")
-    
-    # Afficher tous les livres
-    def afficher_livre(self):
-        """Pour afficher tous les livres"""
-        if not self.LISTE_LIVRES:
-            print("La liste des livres est vide.")
-            return
-        
-        print("\n" + "=" * 40)
-        print(f"  LISTE DES LIVRES ({len(self.LISTE_LIVRES)} livre(s))")
-        print("=" * 40)
-        for i, livre in enumerate(self.LISTE_LIVRES, 1):
-            print(f"{i}. {livre}")
-        print("=" * 40 + "\n")
 
     # Chercher un livre 
     def chercher_livre(self, titre: str, exact_match: bool = False):
@@ -181,8 +181,6 @@ class Bibliotheque:
         # Si le livre n'existe pas
         print(f"Le livre '{titre}' n'existe pas.")
         return None
-            
-                
     
     # Modifier les informations d'un livre 
     def modifier_livres(self, titre: str, nouveau_titre: str, nouvel_auteur : str, nouveau_nombre_pages: int, nouvelle_année_publication : int) :
@@ -223,7 +221,6 @@ class Bibliotheque:
         #  Si le livre nexiste pas 
         else :
             print(f"Le livre {titre} n'existe pas.")
-            
         
     # Emprunter un livre 
     def emprunter_livre(self, titre: str):
