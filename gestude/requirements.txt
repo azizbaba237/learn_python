@@ -1,0 +1,13 @@
+# ============================================================================
+# FICHIER 12 : requirements.txt
+# ============================================================================
+# Dépendances du projet
+# Aucune dépendance externe requise pour ce projet
+# Python 3.8+ avec bibliothèque standard seulement
+
+# Pour le développement et les tests :
+# pytest>=7.0.0
+# pytest-cov>=4.0.0
+# black>=23.0.0
+# flake8>=6.0.0
+# mypy>=1.0.0
